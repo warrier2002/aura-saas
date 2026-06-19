@@ -242,7 +242,7 @@ jobs:
             if ssh -i ~/.ssh/deploy_key \
                    -o StrictHostKeyChecking=no \
                    -o ConnectTimeout=10 \
-                   ubuntu@"$EC2_IP" \
+                   ec2-user@"$EC2_IP" \
                    "test -f ~/bootstrap_done.txt && echo ready" 2>/dev/null | grep -q ready; then
               echo ">>> EC2 bootstrap complete!"
               break
@@ -381,7 +381,7 @@ jobs:
               -o StrictHostKeyChecking=no \
               -L 5433:"$RDS_HOST":5432 \
               -N -f \
-              ubuntu@"$EC2_IP"
+              ec2-user@"$EC2_IP"
           
           sleep 3  # Wait for tunnel to establish
           
@@ -451,7 +451,7 @@ jobs:
           scp -i ~/.ssh/deploy_key \
               -o StrictHostKeyChecking=no \
               -r helm/ \
-              ubuntu@"${{ needs.provision.outputs.ec2_public_ip }}":/home/ubuntu/helm/
+              ec2-user@"${{ needs.provision.outputs.ec2_public_ip }}":/home/ec2-user/helm/
 
       - name: Run Helm Deploy on EC2
         run: |
@@ -464,18 +464,18 @@ jobs:
 
           ssh -i ~/.ssh/deploy_key \
               -o StrictHostKeyChecking=no \
-              ubuntu@"$EC2_IP" << ENDSSH
+              ec2-user@"$EC2_IP" << ENDSSH
             set -e
-            export KUBECONFIG=/home/ubuntu/.kube/config
+            export KUBECONFIG=/home/ec2-user/.kube/config
 
             echo "=== Logging into GHCR ==="
             echo "${{ secrets.GITHUB_TOKEN }}" | \
               docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
             echo "=== Running Helm upgrade ==="
-            helm upgrade --install aura-saas /home/ubuntu/helm/aura-saas \
+            helm upgrade --install aura-saas /home/ec2-user/helm/aura-saas \
               --namespace crm-staging \
-              -f /home/ubuntu/helm/aura-saas/values.staging.yaml \
+              -f /home/ec2-user/helm/aura-saas/values.staging.yaml \
               --create-namespace \
               --set backend.image.repository="${REPO}/crm-backend" \
               --set backend.image.tag="${IMAGE_TAG}" \

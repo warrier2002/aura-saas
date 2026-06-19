@@ -240,24 +240,13 @@ resource "aws_security_group" "rds" {
 # EC2 INSTANCE — Free Tier t2.micro
 # =============================================================================
 
-# Use the latest Ubuntu 22.04 LTS AMI (auto-lookup, not hardcoded)
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical (Ubuntu official)
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
+# Use the latest Amazon Linux 2023 AMI via AWS SSM parameter
+data "aws_ssm_parameter" "al2023" {
+  name = "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64"
 }
 
 resource "aws_instance" "crm_server" {
-  ami                    = data.aws_ami.ubuntu.id
+  ami                    = data.aws_ssm_parameter.al2023.value
   instance_type          = "t2.micro"  # Free tier eligible
   subnet_id              = aws_subnet.public.id
   key_name               = aws_key_pair.deploy_key.key_name

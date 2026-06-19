@@ -33,8 +33,8 @@ output "ssh_private_key" {
 }
 
 output "deploy_user" {
-  description = "Default SSH username for Ubuntu AMIs"
-  value       = "ubuntu"
+  description = "Default SSH username for Amazon Linux AMIs"
+  value       = "ec2-user"
 }
 
 # --- RDS ---
@@ -86,7 +86,7 @@ output "deployment_summary" {
     RDS Endpoint   : ${aws_db_instance.postgres.address}
     RDS DB Name    : ${aws_db_instance.postgres.db_name}
     RDS Username   : ${aws_db_instance.postgres.username}
-    SSH User       : ubuntu
+    SSH User       : ec2-user
     ============================================
     DB Password and JWT Secret: use terraform output -raw
     ============================================

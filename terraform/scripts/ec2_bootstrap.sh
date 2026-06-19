@@ -19,27 +19,18 @@ echo "  Time:    $(date -u)"
 echo "==================================================="
 
 # --- System Update ---
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -y
-apt-get upgrade -y
-apt-get install -y \
+dnf update -y
+dnf install -y \
     curl \
     wget \
     unzip \
     git \
-    ca-certificates \
-    gnupg \
-    lsb-release
+    ca-certificates
 
 # --- Install Docker ---
 echo ">>> Installing Docker..."
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-  https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
-  | tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt-get update -y
-apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-usermod -aG docker ubuntu
+dnf install -y docker
+usermod -aG docker ec2-user
 systemctl enable docker
 systemctl start docker
 echo ">>> Docker installed: $(docker --version)"
@@ -54,11 +45,11 @@ sleep 15
 k3s kubectl wait --for=condition=Ready node --all --timeout=120s || true
 
 # Configure kubeconfig for ubuntu user
-mkdir -p /home/ubuntu/.kube
-cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
-sed -i 's|127.0.0.1|127.0.0.1|g' /home/ubuntu/.kube/config
-chown ubuntu:ubuntu /home/ubuntu/.kube/config
-chmod 600 /home/ubuntu/.kube/config
+mkdir -p /home/ec2-user/.kube
+cp /etc/rancher/k3s/k3s.yaml /home/ec2-user/.kube/config
+sed -i 's|127.0.0.1|127.0.0.1|g' /home/ec2-user/.kube/config
+chown ec2-user:ec2-user /home/ec2-user/.kube/config
+chmod 600 /home/ec2-user/.kube/config
 
 # Also set for root
 mkdir -p /root/.kube
@@ -82,13 +73,13 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
     --set controller.service.type=NodePort \
     --set controller.service.nodePorts.http=80 \
     --set controller.service.nodePorts.https=443 \
-    --wait --timeout 5m
+    
 
 echo ">>> nginx-ingress installed"
 
 # --- Mark bootstrap complete ---
-echo "$PROJECT_NAME bootstrap complete at $(date -u)" > /home/ubuntu/bootstrap_done.txt
-chown ubuntu:ubuntu /home/ubuntu/bootstrap_done.txt
+echo "$PROJECT_NAME bootstrap complete at $(date -u)" > /home/ec2-user/bootstrap_done.txt
+chown ec2-user:ec2-user /home/ec2-user/bootstrap_done.txt
 
 echo "==================================================="
 echo "  CRM — EC2 Bootstrap COMPLETE"
