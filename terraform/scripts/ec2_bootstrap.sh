@@ -72,8 +72,7 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
     --create-namespace \
     --set controller.service.type=NodePort \
     --set controller.service.nodePorts.http=80 \
-    --set controller.service.nodePorts.https=443 \
-    
+    --set controller.service.nodePorts.https=443
 
 echo ">>> nginx-ingress installed"
 
