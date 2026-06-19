@@ -125,9 +125,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       ec2_public_ip: ${{ steps.tf.outputs.ec2_public_ip }}
-      rds_endpoint:  ${{ steps.tf.outputs.rds_endpoint }}
-      db_name:       ${{ steps.tf.outputs.db_name }}
-      db_username:   ${{ steps.tf.outputs.db_username }}
+      rds_endpoint: ${{ steps.tf.outputs.rds_endpoint }}
+      db_name: ${{ steps.tf.outputs.db_name }}
+      db_username: ${{ steps.tf.outputs.db_username }}
     steps:
       - uses: actions/checkout@v4
       - uses: aws-actions/configure-aws-credentials@v4
@@ -151,7 +151,7 @@ jobs:
             fi
             aws s3api put-bucket-versioning --bucket "$BUCKET" --versioning-configuration Status=Enabled
           fi
-          
+
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select prod || terraform workspace new prod
 
@@ -167,7 +167,7 @@ jobs:
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select prod > /dev/null 2>&1 || true
-          
+
           echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
           echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
           echo "db_name=$(terraform output -raw db_name)" >> $GITHUB_OUTPUT
@@ -177,7 +177,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          
+
           EC2_IP=$(terraform output -raw ec2_public_ip)
           for i in $(seq 1 20); do
             if ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@"$EC2_IP" "test -f ~/bootstrap_done.txt && echo ready" 2>/dev/null | grep -q ready; then
@@ -210,31 +210,31 @@ jobs:
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select prod > /dev/null 2>&1 || true
-          
+
           DB_PASSWORD=$(terraform output -raw db_password)
           SSH_KEY=$(terraform output -raw ssh_private_key)
-          
+
           echo "::add-mask::$DB_PASSWORD"
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
-          
+
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          
+
       - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
           RDS_ENDPOINT="${{ needs.provision.outputs.rds_endpoint }}"
           DB_NAME="${{ needs.provision.outputs.db_name }}"
           DB_USER="${{ needs.provision.outputs.db_username }}"
-          
+
           ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no scripts/db_init.sql ec2-user@"$EC2_IP":~/db_init.sql
-          
+
           cat << 'EOF' > run_db_init.sh
           export PGPASSWORD="${DB_PASSWORD}"
           psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "${DB_NAME}" -f ~/db_init.sql
           EOF
-          
+
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no run_db_init.sh ec2-user@"$EC2_IP":~/run_db_init.sh
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/run_db_init.sh"
 
@@ -261,16 +261,16 @@ jobs:
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select prod > /dev/null 2>&1 || true
-          
+
           DB_PASSWORD=$(terraform output -raw db_password)
           JWT_SECRET=$(terraform output -raw jwt_secret)
           SSH_KEY=$(terraform output -raw ssh_private_key)
-          
+
           echo "::add-mask::$DB_PASSWORD"
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
           echo "::add-mask::$JWT_SECRET"
           echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
-          
+
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
@@ -282,10 +282,10 @@ jobs:
           DB_USER="${{ needs.provision.outputs.db_username }}"
           IMAGE_TAG="${{ needs.build-push.outputs.image_tag }}"
           REPO="ghcr.io/${{ github.repository }}"
-          
+
           ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r helm/ ec2-user@"$EC2_IP":~/helm/
-          
+
           cat << 'EOF' > deploy.sh
           set -e
           export KUBECONFIG=/home/ec2-user/.kube/config
@@ -293,7 +293,7 @@ jobs:
           helm upgrade --install aura-saas ~/helm/aura-saas             --namespace crm-prod             -f ~/helm/aura-saas/values.prod.yaml             --create-namespace             --set backend.image.repository="${REPO}/crm-backend"             --set backend.image.tag="${IMAGE_TAG}"             --set frontend.image.repository="${REPO}/crm-frontend"             --set frontend.image.tag="${IMAGE_TAG}"             --set db.host="${RDS_ENDPOINT}"             --set db.name="${DB_NAME}"             --set db.username="${DB_USER}"             --set db.password="${DB_PASSWORD}"             --set jwtSecret="${JWT_SECRET}"             --set ingress.host="${EC2_IP}"             --wait --timeout 8m
           kubectl get pods -n crm-prod
           EOF
-          
+
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.sh ec2-user@"$EC2_IP":~/deploy.sh
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/deploy.sh"
 
