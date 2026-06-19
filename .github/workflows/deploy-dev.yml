@@ -337,7 +337,7 @@ jobs:
         working-directory: terraform
         run: |
           # Re-read Terraform outputs (state is in S3, always available)
-          terraform init -backend-config="region=${ secrets.AWS_REGION }" -input=false
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}" -input=false
           terraform workspace select dev || terraform workspace new dev
           
           DB_PASSWORD=$(terraform workspace select dev > /dev/null 2>&1
@@ -413,7 +413,7 @@ jobs:
           AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
         working-directory: terraform
         run: |
-          terraform init -backend-config="region=${ secrets.AWS_REGION }" -input=false
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}" -input=false
           terraform workspace select dev || terraform workspace new dev
 
           SSH_KEY=$(terraform workspace select dev > /dev/null 2>&1
