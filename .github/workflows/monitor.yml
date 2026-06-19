@@ -140,7 +140,7 @@ jobs:
               print("✓ No hardcoded weak JWT secrets detected in source")
           EOF
 
-  # ── Live Application Health Monitor ────────────────────────────────────────
+# ── Live Application Health Monitor ────────────────────────────────────────
   health-monitor:
     name: Live App Health Check
     runs-on: ubuntu-latest
@@ -151,7 +151,7 @@ jobs:
       - name: Determine target URLs
         id: urls
         run: |
-          BACKEND="${{ inputs.target_url || vars.BACKEND_URL || 'http://localhost:3001' }}"
+          BACKEND="${{ github.event.inputs.target_url || vars.BACKEND_URL || 'http://localhost:3001' }}"
           FRONTEND="${{ vars.APP_URL || 'http://localhost:80' }}"
           echo "BACKEND=$BACKEND"  >> $GITHUB_OUTPUT
           echo "FRONTEND=$FRONTEND" >> $GITHUB_OUTPUT
