@@ -214,81 +214,77 @@ flowchart LR
 flowchart TD
     A(["👨‍💻 git push to main"]) --> CI_BLOCK
 
-    subgraph CI_BLOCK ["🧪 Stage 0 — CI (ci.yml) — Parallel Jobs"]
+    subgraph CI_BLOCK ["🧪 Stage 1 — CI Tests (ci-test)"]
         direction LR
         C1["🐍 Python\nflake8 lint\nbcrypt + JWT tests"]
         C2["🟢 Node.js\nnpm audit\nJWT integration test"]
         C3["🖥️ Frontend\nXSS check\nauth overlay check"]
     end
 
-    CI_BLOCK --> GATE{{"✅ All CI\nJobs Passed?"}}
-    GATE -->|"FAIL"| STOP(["🚫 Deploy Blocked"])
-    GATE -->|"PASS"| TF_BLOCK
+    CI_BLOCK --> BUILD_BLOCK
 
-    subgraph TF_BLOCK ["🏗️ Stage 1 — PROVISION (deploy.yml)"]
+    subgraph BUILD_BLOCK ["🐳 Stage 2 — Build & Push (build-push)"]
+        direction LR
+        B1["docker build crm-backend\nDockerfile.backend"]
+        B2["docker build crm-frontend\nDockerfile.frontend multi-stage"]
+        B3["docker push to GHCR\nboth tagged git SHA + latest"]
+        B1 & B2 --> B3
+    end
+
+    BUILD_BLOCK --> TF_BLOCK
+
+    subgraph TF_BLOCK ["🏗️ Stage 3 — Provision Infra (provision)"]
         direction TB
         TF_A["Bootstrap S3 state bucket\nidempotent — safe to run every push"]
         TF_B["terraform init\nPull state from S3"]
         TF_C["terraform plan\nShow what will change"]
         TF_D["terraform apply\nCreate or update EC2 + RDS"]
-        TF_E["Read terraform outputs\nCapture IP + endpoint + secrets"]
-        TF_F["Wait for EC2 bootstrap\nPoll until k3s and Helm are ready"]
-        TF_A --> TF_B --> TF_C --> TF_D --> TF_E --> TF_F
+        TF_E["Wait for EC2 bootstrap\nPoll until k3s and Docker are ready"]
+        TF_A --> TF_B --> TF_C --> TF_D --> TF_E
     end
 
-    TF_BLOCK --> PARALLEL
+    TF_BLOCK --> DBINIT_BLOCK
 
-    subgraph PARALLEL ["Parallel Execution"]
-        direction LR
-        subgraph BUILD_BLOCK ["🐳 Stage 2a — BUILD"]
-            B1["docker build crm-backend\nDockerfile.backend"]
-            B2["docker build crm-frontend\nDockerfile.frontend multi-stage"]
-            B3["docker push to GHCR\nboth tagged git SHA + latest"]
-        end
-
-        subgraph DBINIT_BLOCK ["🗄️ Stage 2b — DB INIT"]
-            D1["Open SSH tunnel\nlocalhost:5433 to RDS via EC2"]
-            D2["psql run db_init.sql\nCreate tenant schemas"]
-            D3["Schema tenant_a\ntables + seed admin"]
-            D4["Schema tenant_b\ntables + seed admin"]
-        end
+    subgraph DBINIT_BLOCK ["🗄️ Stage 4 — DB Initialization (db-init)"]
+        direction TB
+        D1["Open SSH tunnel\nlocalhost:5433 to RDS via EC2"]
+        D2["psql run db_init.sql\nCreate tenant schemas"]
+        D3["Schema tenant_a\ntables + seed admin"]
+        D4["Schema tenant_b\ntables + seed admin"]
+        D1 --> D2 --> D3 & D4
     end
 
-    PARALLEL --> DEPLOY_BLOCK
+    DBINIT_BLOCK --> DEPLOY_BLOCK
 
-    subgraph DEPLOY_BLOCK ["🚀 Stage 3 — DEPLOY"]
+    subgraph DEPLOY_BLOCK ["🚀 Stage 5 — Helm Deploy (helm-deploy)"]
+        direction TB
         E1["Write SSH key\nfrom terraform output masked"]
         E2["SCP Helm chart\nto EC2 server"]
         E3["SSH into EC2\nhelm upgrade install aura-saas"]
         E4["Kubernetes rolling update\nZero downtime"]
-        E5["Smoke test backend\ncurl GET /api/health"]
-        E6["Auth check\nExpect 401 on GET /api/customers"]
-        E1 --> E2 --> E3 --> E4 --> E5 --> E6
+        E1 --> E2 --> E3 --> E4
     end
 
-    DEPLOY_BLOCK --> SUCCESS(["🎉 Deployment\nSUCCESS\nURL: http://EC2-IP"])
+    DEPLOY_BLOCK --> MONITOR_BLOCK
 
-    subgraph CRON_BLOCK ["👁️ Stage 4 — MONITOR (every 30 min cron)"]
-        M1["pip-audit Python vulns"]
-        M2["npm audit Node vulns"]
-        M3["Bandit SAST scan"]
-        M4["Health endpoint check"]
-        M5["Auth enforcement 401"]
+    subgraph MONITOR_BLOCK ["👁️ Stage 6 — Post-Deploy Monitor (monitor)"]
+        direction TB
+        M1["Wait for pods to be ready"]
+        M2["cURL EC2 Public IP\nPoll up to 12 times (3 mins)"]
+        M3["Require HTTP 200 OK\nPipeline fails if app is down"]
+        M1 --> M2 --> M3
     end
 
-    SUCCESS -.->|"runs on separate schedule"| CRON_BLOCK
+    MONITOR_BLOCK --> SUCCESS(["🎉 Pipeline\nSUCCESS\nURL: http://EC2-IP"])
 
     style A fill:#238636,stroke:#3fb950,color:#fff,stroke-width:2px
     style CI_BLOCK fill:#0d3b66,stroke:#5adfff,color:#fff,stroke-width:2px
-    style GATE fill:#9e6a03,stroke:#e3b341,color:#fff,stroke-width:2px
-    style STOP fill:#6e1c1c,stroke:#f85149,color:#fff,stroke-width:2px
-    style TF_BLOCK fill:#3d0a3d,stroke:#da77f2,color:#fff,stroke-width:2px
-    style PARALLEL fill:#0d1117,stroke:#555,color:#fff,stroke-width:1px
     style BUILD_BLOCK fill:#1b4332,stroke:#52b788,color:#fff,stroke-width:2px
+    style TF_BLOCK fill:#3d0a3d,stroke:#da77f2,color:#fff,stroke-width:2px
     style DBINIT_BLOCK fill:#2d1a00,stroke:#e3b341,color:#fff,stroke-width:2px
     style DEPLOY_BLOCK fill:#3d1a0d,stroke:#f77f00,color:#fff,stroke-width:2px
+    style MONITOR_BLOCK fill:#1c1a3d,stroke:#79c0ff,color:#fff,stroke-width:2px
     style SUCCESS fill:#238636,stroke:#3fb950,color:#fff,stroke-width:2px
-    style CRON_BLOCK fill:#1c1a3d,stroke:#79c0ff,color:#fff,stroke-width:2px
 ```
 
 ---

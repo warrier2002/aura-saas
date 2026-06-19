@@ -423,30 +423,27 @@ This is the exact sequence of how all values flow from Terraform → GitHub Acti
 ```
 STEP 1: Developer pushes to main
 
-STEP 2: GitHub Actions — provision job
+STEP 2: GitHub Actions — ci-test & build-push
+  Runs linting, security tests
+  Builds Docker images and pushes to GHCR
+
+STEP 3: GitHub Actions — provision job
   terraform apply
     └→ Creates: EC2 t2.micro, RDS db.t3.micro, VPC, Security Groups
     └→ Generates: tls_private_key (RSA 4096) → aws_key_pair
     └→ Generates: random_password (24 chars) → RDS password
     └→ Generates: random_password (64 chars) → JWT secret
   
-  terraform output -raw ec2_public_ip     → GITHUB_OUTPUT ec2_public_ip
-  terraform output -raw ec2_public_dns    → GITHUB_OUTPUT ec2_dns
-  terraform output -raw rds_endpoint      → GITHUB_OUTPUT rds_endpoint
-  terraform output -raw db_name           → GITHUB_OUTPUT db_name
-  terraform output -raw db_username       → GITHUB_OUTPUT db_username
-  terraform output -raw ssh_private_key   → GITHUB_ENV (masked)
-  terraform output -raw db_password       → GITHUB_ENV (masked)
-  terraform output -raw jwt_secret        → GITHUB_ENV (masked)
+  Waits for EC2 bootstrap to finish
 
-STEP 3: GitHub Actions — db-init job
-  Reads terraform outputs again from S3 state
+STEP 4: GitHub Actions — db-init job
+  Runs: terraform output -raw to get endpoints and keys securely
   Opens SSH tunnel: localhost:5433 → EC2 → RDS:5432
   Runs: psql -f scripts/db_init.sql
   Creates: tenant_a schema, tenant_b schema, tables, seed users
 
-STEP 4: GitHub Actions — deploy job
-  Reads terraform outputs again from S3 state
+STEP 5: GitHub Actions — helm-deploy job
+  Runs: terraform output -raw to get endpoints and keys securely
   SSH into EC2 (using ssh_private_key output)
   Runs helm upgrade --install aura-saas ./helm/aura-saas \
     --set db.host=<rds_endpoint>         ← from terraform output
@@ -459,6 +456,11 @@ STEP 4: GitHub Actions — deploy job
   Helm renders K8s Secrets with these values
   Kubernetes injects them as env vars into backend pods
   Backend pods connect to RDS using these env vars
+
+STEP 6: GitHub Actions — monitor job
+  Sleeps for a few seconds to let pods start
+  Polls the EC2 Public IP up to 12 times
+  Fails pipeline if it does not receive HTTP 200 OK
 ```
 
 ---

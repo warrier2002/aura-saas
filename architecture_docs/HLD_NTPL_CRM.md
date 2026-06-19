@@ -277,7 +277,7 @@ TRIGGER: Push to main branch
          │
          ▼
 ┌─────────────────────────────────────────────────────┐
-│  JOB 0 (ci.yml): CI — Lint & Security Tests         │
+│  JOB 1: ci-test — Lint & Security Tests             │
 │  ├── Python: flake8 lint, JWT tests, bcrypt tests   │
 │  ├── Node.js: npm audit, JWT/bcrypt integration     │
 │  └── Frontend: HTML security feature checks         │
@@ -285,48 +285,41 @@ TRIGGER: Push to main branch
                           │ All pass ✅
                           ▼
 ┌─────────────────────────────────────────────────────┐
-│  JOB 1: PROVISION — Terraform Apply                 │
-│  Uses: AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY    │
-│  ├── Bootstrap S3 bucket for Terraform state        │
-│  ├── terraform init + plan + apply                  │
-│  ├── Creates EC2 t2.micro + RDS db.t3.micro         │
-│  ├── Auto-generates: SSH key, DB password, JWT sec  │
-│  ├── Reads: terraform output -raw ec2_public_ip     │
-│  ├── Reads: terraform output -raw rds_endpoint      │
-│  └── Exposes all as job outputs for next jobs       │
-└─────────────────────────┬───────────────────────────┘
-                          │ (parallel)
-              ┌───────────┴───────────┐
-              ▼                       ▼
-┌─────────────────────┐  ┌───────────────────────────┐
-│  JOB 2: BUILD       │  │  JOB 3: DB INIT           │
-│  Docker build+push  │  │  SSH tunnel to RDS via EC2│
-│  crm-backend:sha    │  │  Run db_init.sql           │
-│  crm-frontend:sha   │  │  Create schemas + tables   │
-│  Push to GHCR       │  │  Insert seed admin users   │
-└─────────┬───────────┘  └───────────┬───────────────┘
-          └──────────────┬───────────┘
-                         ▼
-┌─────────────────────────────────────────────────────┐
-│  JOB 4: DEPLOY — Helm on EC2                        │
-│  ├── SSH into EC2 (key from terraform output)       │
-│  ├── helm upgrade --install aura-saas ./helm/...     │
-│     --set db.host=<from terraform output>           │
-│     --set db.password=<from terraform output>       │
-│     --set jwtSecret=<from terraform output>         │
-│     --set backend.image.tag=<git-sha>               │
-│  ├── Kubernetes rolling update (zero downtime)      │
-│  └── Smoke test: curl /health + auth 401 check      │
+│  JOB 2: build-push — Docker Build & Push            │
+│  ├── build crm-backend:sha & crm-frontend:sha       │
+│  └── push to GHCR                                   │
 └─────────────────────────┬───────────────────────────┘
                           │
                           ▼
 ┌─────────────────────────────────────────────────────┐
-│  JOB 5 (monitor.yml CRON): Every 30 minutes         │
-│  ├── pip-audit (Python dep vulnerabilities)         │
-│  ├── npm audit (Node.js dep vulnerabilities)        │
-│  ├── Bandit SAST (Python static analysis)           │
-│  ├── Live HTTP health check on deployed URL         │
-│  └── Auth enforcement check (401 on no token)      │
+│  JOB 3: provision — Terraform Apply                 │
+│  Uses: AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY    │
+│  ├── Bootstrap S3 bucket for Terraform state        │
+│  ├── terraform apply (Creates EC2 + RDS)            │
+│  └── Waits for EC2 bootstrap script to finish       │
+└─────────────────────────┬───────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────┐
+│  JOB 4: db-init — Run SQL Migrations via SSH tunnel │
+│  ├── SSH tunnel to RDS via EC2                      │
+│  ├── Run db_init.sql                                │
+│  └── Create schemas + tables + seed admin users     │
+└─────────────────────────┬───────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────┐
+│  JOB 5: helm-deploy — Deploy to K3s on EC2          │
+│  ├── SSH into EC2 (key from terraform output)       │
+│  ├── helm upgrade --install aura-saas ./helm/...     │
+│  └── Kubernetes rolling update (zero downtime)      │
+└─────────────────────────┬───────────────────────────┘
+                          │
+                          ▼
+┌─────────────────────────────────────────────────────┐
+│  JOB 6: monitor — Post-Deploy Health Check          │
+│  ├── Wait for pods to be ready                      │
+│  └── cURL EC2 IP until HTTP 200 OK                  │
 └─────────────────────────────────────────────────────┘
 ```
 
