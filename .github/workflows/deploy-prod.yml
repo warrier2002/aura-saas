@@ -80,7 +80,7 @@ jobs:
           AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
         run: |
           # Create the S3 bucket for Terraform state if it doesn't already exist
-          BUCKET="aura-saas-tfstate-prod"
+          BUCKET="aura-saas-tfstate"
           REGION="${{ secrets.AWS_REGION }}"
           
           if aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
