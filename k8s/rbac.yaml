@@ -1,0 +1,57 @@
+# rbac.yaml
+# Defines isolated access for tenants within their own namespaces
+
+# Tenant A Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: tenant-a
+  name: tenant-a-admin
+rules:
+- apiGroups: ["", "apps", "autoscaling"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+# Tenant A RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tenant-a-admin-binding
+  namespace: tenant-a
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: tenant-a
+roleRef:
+  kind: Role
+  name: tenant-a-admin
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Tenant B Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: tenant-b
+  name: tenant-b-admin
+rules:
+- apiGroups: ["", "apps", "autoscaling"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+# Tenant B RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tenant-b-admin-binding
+  namespace: tenant-b
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: tenant-b
+roleRef:
+  kind: Role
+  name: tenant-b-admin
+  apiGroup: rbac.authorization.k8s.io
