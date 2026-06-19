@@ -232,7 +232,7 @@ jobs:
           
           cat << 'EOF' > run_db_init.sh
           export PGPASSWORD="${DB_PASSWORD}"
-          psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "${DB_NAME}" -f ~/db_init.sql
+          docker run --rm -v ~/db_init.sql:/db_init.sql -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "${DB_NAME}" -f /db_init.sql
           EOF
           
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no run_db_init.sh ec2-user@"$EC2_IP":~/run_db_init.sh
