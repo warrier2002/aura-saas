@@ -524,116 +524,37 @@ jobs:
           AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
-        working-directory: terraform
-        run: |
-          # Re-read Terraform outputs (state is in S3, always available)
-          terraform init -backend-config="region=${{ secrets.AWS_REGION }}" -input=false
-          terraform workspace select dev || terraform workspace new dev
-          
-                    DB_PASSWORD=$(terraform workspace select dev > /dev/null 2>&1 && terraform output -raw db_password)
-          echo "::add-mask::$DB_PASSWORD"
-          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
-          
-          SSH_KEY=$(terraform workspace select dev > /dev/null 2>&1 && terraform output -raw ssh_private_key)
-          echo "::add-mask::$SSH_KEY"
-          echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
-          echo "$SSH_KEY"            >> $GITHUB_ENV
-          echo "EOF"                 >> $GITHUB_ENV
-          
-          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
-          echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_ENV
-          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
-          echo "DB_USER=$(terraform output -raw db_username)" >> $GITHUB_ENV
-          echo "$SSH_KEY"            >> $GITHUB_ENV
-          echo "EOF"                 >> $GITHUB_ENV
-
-      - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update -y
-          sudo apt-get install -y postgresql-client
-
-      - name: Run DB Schema Migrations via SSH tunnel
-        run: |
-                    
-          # Write SSH key
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
-          
-          # Open SSH tunnel: localhost:5433 → RDS via EC2
-          # (RDS is in private subnet, only accessible from EC2)
-          ssh -i ~/.ssh/deploy_key \
-              -o StrictHostKeyChecking=no \
-              -L 5433:"$RDS_HOST":5432 \
-              -N -f \
-              ec2-user@"$EC2_IP"
-          
-          sleep 3  # Wait for tunnel to establish
-          
-          echo ">>> Running schema migrations..."
-          PGPASSWORD="$DB_PASSWORD" psql \
-            -h 127.0.0.1 \
-            -p 5433 \
-            -U "$DB_USER" \
-            -d "$DB_NAME" \
-            -f scripts/db_init.sql
-          
-          echo ">>> Database schemas initialised successfully"
-
-  # ===========================================================================
-  # JOB 4: DEPLOY TO KUBERNETES VIA HELM
-  # SSH into EC2, run helm upgrade with all auto-fetched values
-  # ===========================================================================
-  deploy:
-    name: "🚀 Deploy to Kubernetes (Helm)"
-    runs-on: ubuntu-latest
-    needs: db-init
-    environment:
-      name: production
-      url: "http://${{ needs.provision.outputs.ec2_public_ip }}"
-
-    steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Restore all Terraform outputs (sensitive values)
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
-        working-directory: terraform
+                working-directory: terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}" -input=false
           terraform workspace select dev || terraform workspace new dev
-
-          SSH_KEY=$(terraform workspace select dev > /dev/null 2>&1
-          terraform output -raw ssh_private_key)
-                    DB_PASSWORD=$(terraform workspace select dev > /dev/null 2>&1 && terraform output -raw db_password)
+          
+          DB_PASSWORD=$(terraform output -raw db_password)
           echo "::add-mask::$DB_PASSWORD"
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
           
-          SSH_KEY=$(terraform workspace select dev > /dev/null 2>&1 && terraform output -raw ssh_private_key)
+          JWT_SECRET=$(terraform output -raw jwt_secret)
+          echo "::add-mask::$JWT_SECRET"
+          echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
+          
+          SSH_KEY=$(terraform output -raw ssh_private_key)
           echo "::add-mask::$SSH_KEY"
           echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
-          echo "$SSH_KEY"            >> $GITHUB_ENV
-          echo "EOF"                 >> $GITHUB_ENV
+          echo "$SSH_KEY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
           
           echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
-          echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_ENV
+          echo "RDS_ENDPOINT=$(terraform output -raw rds_endpoint)" >> $GITHUB_ENV
           echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
           echo "DB_USER=$(terraform output -raw db_username)" >> $GITHUB_ENV
-          echo "$SSH_KEY"            >> $GITHUB_ENV
-          echo "EOF"                 >> $GITHUB_ENV
-          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
-          echo "JWT_SECRET=$JWT_SECRET"   >> $GITHUB_ENV
+
 
       - name: Set up SSH connection
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "${{ needs.provision.outputs.ec2_public_ip }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
 
       - name: Upload Helm chart to EC2
         run: |
@@ -641,14 +562,14 @@ jobs:
           scp -i ~/.ssh/deploy_key \
               -o StrictHostKeyChecking=no \
               -r helm/ \
-              ec2-user@"${{ needs.provision.outputs.ec2_public_ip }}":/home/ec2-user/helm/
+              ec2-user@"$EC2_IP":/home/ec2-user/helm/
 
       - name: Run Helm Deploy on EC2
         run: |
           IMAGE_TAG="${{ needs.build-push.outputs.image_tag }}"
-          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          RDS_ENDPOINT="${{ needs.provision.outputs.rds_endpoint }}"
-          DB_NAME="${{ needs.provision.outputs.db_name }}"
+          
+          
+          
           DB_USERNAME="${{ needs.provision.outputs.db_username }}"
           REPO="ghcr.io/${{ github.repository }}"
 
@@ -686,7 +607,7 @@ jobs:
 
       - name: Smoke Test — Backend Health
         run: |
-          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
+          
           echo ">>> Waiting 15 seconds for pods to stabilise..."
           sleep 15
           echo ">>> Backend health check:"
@@ -706,7 +627,7 @@ jobs:
       - name: Print Deployment Summary
         if: success()
         run: |
-          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
+          
           echo ""
           echo "=============================================="
           echo "  Aura SaaS DEPLOYMENT SUCCESSFUL"
@@ -741,7 +662,7 @@ jobs:
     steps:
       - name: Verify Web App is Online
         run: |
-          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
+          
           echo ">>> Pinging http://$EC2_IP"
           
           # Poll the webserver for up to 3 minutes
