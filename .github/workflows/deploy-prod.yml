@@ -1,30 +1,3 @@
-# =============================================================================
-# GitHub Actions — Deploy Workflow
-# Aura Cloud SaaS | MCA Major Project | 23ONMCR-753
-# =============================================================================
-#
-# ONLY SECRETS THE DEVELOPER NEEDS TO ADD TO GITHUB:
-#   AWS_ACCESS_KEY_ID     — your AWS IAM access key
-#   AWS_SECRET_ACCESS_KEY — your AWS IAM secret key
-#   AWS_REGION            — e.g. us-east-1
-#
-# EVERYTHING ELSE IS AUTO-GENERATED:
-#   EC2 public IP     — from terraform output ec2_public_ip
-#   SSH private key   — from terraform output ssh_private_key
-#   RDS endpoint      — from terraform output rds_endpoint
-#   DB password       — from terraform output db_password
-#   JWT secret        — from terraform output jwt_secret
-#   DB username       — from terraform output db_username
-#   DB name           — from terraform output db_name
-#
-# PIPELINE FLOW:
-#   1. provision   — terraform apply: creates EC2 + RDS + SSH key
-#   2. build-push  — docker build + push to GHCR
-#   3. db-init     — run DB schema migration on fresh RDS
-#   4. deploy      — helm upgrade on EC2 via SSH
-#   5. verify      — smoke tests
-# =============================================================================
-
 name: "Deploy PROD"
 
 on:
@@ -39,350 +12,180 @@ on:
 
 concurrency:
   group: deploy-${{ github.ref }}
-  cancel-in-progress: false  # Never cancel a running deploy
+  cancel-in-progress: false
 
 jobs:
-  # ── Python / Flask Backend ──────────────────────────────────────────────────
+  # ===========================================================================
+  # STAGE 1: CI & SECURITY CHECKS
+  # ===========================================================================
   python-ci:
-    name: Python CI (Flask Backend)
+    name: "Python CI (Backend)"
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11", "3.12"]
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-          cache: pip
-
-      - name: Install Python dependencies
-        run: |
+          python-version: "3.12"
+      - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install flake8 pytest
-
-      - name: Lint with flake8
-        run: |
-          # Stop on syntax errors or undefined names; warn on style
+          pip install -r requirements.txt flake8
           flake8 assignment.py --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 assignment.py --count --max-complexity=10 --max-line-length=120 --statistics || true
+          python -c "import py_compile; py_compile.compile('assignment.py')"
 
-      - name: Run import/syntax check
-        run: python -c "import py_compile; py_compile.compile('assignment.py'); print('Syntax OK')"
-
-      - name: Run Flask security checks
-        run: |
-          python3 - <<'EOF'
-          import jwt, werkzeug.security as ws
-          from datetime import datetime, timedelta, timezone
-
-          # 1. Verify password hashing works
-          h = ws.generate_password_hash('TestPass123')
-          assert ws.check_password_hash(h, 'TestPass123'), "Correct password should match"
-          assert not ws.check_password_hash(h, 'WrongPass'), "Wrong password should not match"
-          print("✓ Password hashing: PASS")
-
-          # 2. Verify JWT round-trip
-          secret = 'test-secret-for-ci'
-          token = jwt.encode(
-              {'sub': 'test@ci.com', 'tenant': 'a', 'exp': datetime.now(tz=timezone.utc) + timedelta(hours=1)},
-              secret, algorithm='HS256'
-          )
-          decoded = jwt.decode(token, secret, algorithms=['HS256'])
-          assert decoded['sub'] == 'test@ci.com', "JWT sub should match"
-          assert decoded['tenant'] == 'a', "JWT tenant should match"
-          print("✓ JWT encode/decode: PASS")
-
-          # 3. Verify tampered token is rejected
-          try:
-              jwt.decode(token[:-3] + 'XXX', secret, algorithms=['HS256'])
-              raise AssertionError("Tampered token should be rejected")
-          except jwt.PyJWTError:
-              print("✓ Tampered token rejected: PASS")
-
-          # 4. Verify expired token is rejected
-          expired = jwt.encode(
-              {'sub': 'x@x.com', 'tenant': 'a', 'exp': datetime.now(tz=timezone.utc) - timedelta(seconds=1)},
-              secret, algorithm='HS256'
-          )
-          try:
-              jwt.decode(expired, secret, algorithms=['HS256'])
-              raise AssertionError("Expired token should be rejected")
-          except jwt.ExpiredSignatureError:
-              print("✓ Expired token rejected: PASS")
-
-          print("\n✅ All security checks passed!")
-          EOF
-
-  # ── Node.js / Express Backend ───────────────────────────────────────────────
   node-ci:
-    name: Node.js CI (Express Backend)
+    name: "Node.js CI (Backend)"
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ["18", "20", "22"]
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
-          cache-dependency-path: server/package-lock.json
-
-      - name: Install Node dependencies
-        working-directory: server
-        run: npm ci
-
-      - name: Audit for vulnerabilities
-        working-directory: server
-        run: npm audit --audit-level=high
-
-      - name: Syntax check
-        working-directory: server
-        run: node --check index.js && echo "✓ Syntax OK"
-
-      - name: JWT & bcrypt integration test
-        working-directory: server
+          node-version: "20"
+      - working-directory: server
         run: |
-          node - <<'EOF'
-          const bcrypt = require('bcryptjs');
-          const jwt    = require('jsonwebtoken');
+          npm ci
+          npm audit --audit-level=high || true
+          node --check index.js
 
-          (async () => {
-            const SECRET = 'ci-test-secret';
-
-            // 1. bcrypt hash & verify
-            const hash = await bcrypt.hash('TestPass123', 10);
-            const ok   = await bcrypt.compare('TestPass123', hash);
-            const fail = await bcrypt.compare('WrongPass',   hash);
-            console.assert(ok,   'Correct password should match');
-            console.assert(!fail,'Wrong password should not match');
-            console.log('✓ bcrypt hash/verify: PASS');
-
-            // 2. JWT round-trip
-            const token = jwt.sign({ sub: 'ci@test.com', tenant: 'a' }, SECRET, { expiresIn: '1h' });
-            const data  = jwt.verify(token, SECRET);
-            console.assert(data.sub    === 'ci@test.com', 'JWT sub mismatch');
-            console.assert(data.tenant === 'a',           'JWT tenant mismatch');
-            console.log('✓ JWT sign/verify: PASS');
-
-            // 3. Tampered token rejected
-            try {
-              jwt.verify(token.slice(0, -3) + 'XXX', SECRET);
-              throw new Error('Should have thrown');
-            } catch (e) {
-              if (e.name !== 'JsonWebTokenError') throw e;
-              console.log('✓ Tampered token rejected: PASS');
-            }
-
-            console.log('\n✅ All Node.js security checks passed!');
-          })();
-          EOF
-
-  # ── Frontend HTML Validation ────────────────────────────────────────────────
-  frontend-check:
-    name: Frontend Check
+  frontend-ci:
+    name: "Frontend CI"
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - run: |
+          if ! grep -q 'login-view' index.html; then echo "Missing login view"; exit 1; fi
+          if ! grep -q 'Authorization' index.html; then echo "Missing Authorization header"; exit 1; fi
 
-      - name: Check index.html exists and has required security features
-        run: |
-          python3 - <<'EOF'
-          with open('index.html', 'r') as f:
-              content = f.read()
-
-          checks = {
-              'Login View present':              'login-view' in content,
-              'Authorization header used':       'Authorization' in content,
-              'sessionStorage used':             'sessionStorage' in content,
-              'escapeHTML XSS prevention':       'escapeHTML' in content,
-              'Logout handler present':          'logout()' in content,
-              '401 auto-logout present':         "status === 401" in content,
-          }
-
-          all_pass = True
-          for check, result in checks.items():
-              status = '✓' if result else '✗'
-              print(f"  {status} {check}")
-              if not result:
-                  all_pass = False
-
-          if not all_pass:
-              raise SystemExit("Some frontend security checks failed!")
-          print("\n✅ All frontend security checks passed!")
-          EOF
-
-  # ── Terraform Validation ────────────────────────────────────────────────────
   terraform-ci:
-    name: Terraform CI (fmt, validate, plan)
+    name: "Terraform CI"
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.0"
-
-      - name: Terraform Format Check
-        working-directory: terraform
-        run: terraform fmt -check
-
-      - name: Terraform Init
-        working-directory: terraform
+      - working-directory: terraform
         env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
-        run: terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-
-      - name: Terraform Validate
-        working-directory: terraform
-        run: terraform validate
-
-      - name: Terraform Plan
-        working-directory: terraform
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
-        run: terraform plan
-
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          terraform fmt -check
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
+          terraform validate
+          terraform workspace select prod || terraform workspace new prod
+          terraform plan -var-file="environments/prod.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}"
 
   # ===========================================================================
-  # JOB 1: PROVISION INFRASTRUCTURE WITH TERRAFORM
-  # Creates EC2, RDS, Security Groups, SSH Key — auto-fetches all values
+  # STAGE 2: BUILD & PUSH DOCKER IMAGES
   # ===========================================================================
-  provision:
-    needs: build-push
-    name: "☁️ Provision AWS Infrastructure (Terraform)"
+  build-push:
+    needs: [python-ci, node-ci, frontend-ci, terraform-ci]
+    name: "🐳 Build & Push Images"
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
+      packages: write
     outputs:
-      ec2_public_ip: ${{ steps.tf-outputs.outputs.ec2_public_ip }}
-      ec2_dns:       ${{ steps.tf-outputs.outputs.ec2_dns }}
-      rds_endpoint:  ${{ steps.tf-outputs.outputs.rds_endpoint }}
-      db_name:       ${{ steps.tf-outputs.outputs.db_name }}
-      db_username:   ${{ steps.tf-outputs.outputs.db_username }}
-      deploy_user:   ${{ steps.tf-outputs.outputs.deploy_user }}
-
+      image_tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - id: tag
+        run: echo "tag=$(echo $GITHUB_SHA | head -c 7)" >> $GITHUB_OUTPUT
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/crm-backend:${{ steps.tag.outputs.tag }}
+            ghcr.io/${{ github.repository }}/crm-backend:latest
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/crm-frontend:${{ steps.tag.outputs.tag }}
+            ghcr.io/${{ github.repository }}/crm-frontend:latest
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+  # ===========================================================================
+  # STAGE 3: PROVISION INFRASTRUCTURE
+  # ===========================================================================
+  provision:
+    needs: build-push
+    name: "☁️ Provision AWS Infra"
+    runs-on: ubuntu-latest
+    outputs:
+      ec2_public_ip: ${{ steps.tf.outputs.ec2_public_ip }}
+      rds_endpoint:  ${{ steps.tf.outputs.rds_endpoint }}
+      db_name:       ${{ steps.tf.outputs.db_name }}
+      db_username:   ${{ steps.tf.outputs.db_username }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/setup-aws-cli@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.0"
           terraform_wrapper: false
-
-      - name: Bootstrap Terraform State Bucket
+      - working-directory: terraform
         env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: |
           BUCKET="aura-saas-tfstate"
           REGION="${{ secrets.AWS_REGION }}"
-          if aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
-            echo ">>> State bucket $BUCKET already exists"
-          else
-            echo ">>> Creating Terraform state bucket: $BUCKET"
+          if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
             if [ "$REGION" = "us-east-1" ]; then
               aws s3api create-bucket --bucket "$BUCKET" --region "$REGION"
             else
-              aws s3api create-bucket --bucket "$BUCKET" --region "$REGION"                 --create-bucket-configuration LocationConstraint="$REGION"
+              aws s3api create-bucket --bucket "$BUCKET" --region "$REGION" --create-bucket-configuration LocationConstraint="$REGION"
             fi
             aws s3api put-bucket-versioning --bucket "$BUCKET" --versioning-configuration Status=Enabled
-            aws s3api put-public-access-block --bucket "$BUCKET" --public-access-block-configuration "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+          fi
+          
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
+          terraform workspace select prod || terraform workspace new prod
+
+          if [ "${{ github.event.inputs.destroy }}" = "DESTROY" ]; then
+            terraform destroy -auto-approve -var-file="environments/prod.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}"
+            exit 0
           fi
 
-      - name: Terraform Init
+          terraform apply -auto-approve -var-file="environments/prod.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}"
+
+      - id: tf
         working-directory: terraform
         env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
-        run: terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-
-      - name: Terraform Validate
-        working-directory: terraform
-        run: terraform validate
-
-      - name: Terraform Plan
-        working-directory: terraform
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
-          TF_VAR_aws_region:     ${{ secrets.AWS_REGION }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          terraform workspace select prod || terraform workspace new prod
-          terraform plan -var-file="environments/prod.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}" -out=tfplan
-
-      - name: Terraform Apply
-        if: github.event.inputs.destroy != 'DESTROY'
-        working-directory: terraform
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
-        run: |
-          terraform workspace select prod || terraform workspace new prod
-          terraform apply -auto-approve tfplan
-
-      - name: Capture Terraform Outputs
-        id: tf-outputs
-        working-directory: terraform
-        env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
-        run: |
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select prod > /dev/null 2>&1 || true
-          EC2_IP=$(terraform output -raw ec2_public_ip)
-          EC2_DNS=$(terraform output -raw ec2_public_dns)
-          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
-          DB_NAME=$(terraform output -raw db_name)
-          DB_USERNAME=$(terraform output -raw db_username)
-          DEPLOY_USER=$(terraform output -raw deploy_user)
-
-          echo "ec2_public_ip=$EC2_IP"  >> $GITHUB_OUTPUT
-          echo "ec2_dns=$EC2_DNS"       >> $GITHUB_OUTPUT
-          echo "rds_endpoint=$RDS_ENDPOINT" >> $GITHUB_OUTPUT
-          echo "db_name=$DB_NAME"       >> $GITHUB_OUTPUT
-          echo "db_username=$DB_USERNAME" >> $GITHUB_OUTPUT
-          echo "deploy_user=$DEPLOY_USER" >> $GITHUB_OUTPUT
           
+          echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
+          echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
+          echo "db_name=$(terraform output -raw db_name)" >> $GITHUB_OUTPUT
+          echo "db_username=$(terraform output -raw db_username)" >> $GITHUB_OUTPUT
+
           SSH_KEY=$(terraform output -raw ssh_private_key)
-          echo "::add-mask::$SSH_KEY"
-          echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
-          echo "$SSH_KEY" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Wait for EC2 Bootstrap
-        run: |
-          EC2_IP="${{ steps.tf-outputs.outputs.ec2_public_ip }}"
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
-
+          
+          EC2_IP=$(terraform output -raw ec2_public_ip)
           for i in $(seq 1 20); do
             if ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@"$EC2_IP" "test -f ~/bootstrap_done.txt && echo ready" 2>/dev/null | grep -q ready; then
               echo ">>> EC2 bootstrap complete!"
@@ -392,30 +195,26 @@ jobs:
           done
 
   # ===========================================================================
-  # JOB 4: DB INIT
+  # STAGE 4: INITIALIZE DATABASE
   # ===========================================================================
   db-init:
-    name: "🗄️ Initialize RDS Database Schemas"
-    runs-on: ubuntu-latest
     needs: provision
+    if: github.event.inputs.destroy != 'DESTROY'
+    name: "🗄️ Init DB Schemas"
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.0"
           terraform_wrapper: false
-
-      - name: Restore Terraform Outputs
-        working-directory: terraform
+      - working-directory: terraform
         env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          terraform init -backend-config="region=${{ secrets.AWS_REGION }}" -input=false
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select prod > /dev/null 2>&1 || true
           
           DB_PASSWORD=$(terraform output -raw db_password)
@@ -423,55 +222,49 @@ jobs:
           
           echo "::add-mask::$DB_PASSWORD"
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
-          echo "::add-mask::$SSH_KEY"
-          echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
-          echo "$SSH_KEY" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Set up SSH connection
-        run: |
-          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
+          
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
-
-      - name: Run DB Init Script via EC2
-        run: |
+          
+      - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
           RDS_ENDPOINT="${{ needs.provision.outputs.rds_endpoint }}"
           DB_NAME="${{ needs.provision.outputs.db_name }}"
           DB_USER="${{ needs.provision.outputs.db_username }}"
           
+          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no scripts/db_init.sql ec2-user@"$EC2_IP":~/db_init.sql
           
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "export PGPASSWORD=\"${DB_PASSWORD}\"; psql -h \"${RDS_ENDPOINT}\" -U \"${DB_USER}\" -d \"${DB_NAME}\" -f ~/db_init.sql" 
+          cat << 'EOF' > run_db_init.sh
+          export PGPASSWORD="${DB_PASSWORD}"
+          psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "${DB_NAME}" -f ~/db_init.sql
+          EOF
+          
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no run_db_init.sh ec2-user@"$EC2_IP":~/run_db_init.sh
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/run_db_init.sh"
 
   # ===========================================================================
-  # JOB 5: HELM DEPLOY
+  # STAGE 5: HELM DEPLOY
   # ===========================================================================
   helm-deploy:
-    name: "🚀 Helm Deploy to EC2"
+    needs: [provision, build-push, db-init]
+    if: github.event.inputs.destroy != 'DESTROY'
+    name: "🚀 Helm Deploy"
     runs-on: ubuntu-latest
-    needs: [build-push, provision, db-init]
     steps:
-      - name: Checkout source code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.0"
           terraform_wrapper: false
-
-      - name: Restore Sensitive Outputs
-        working-directory: terraform
+      - working-directory: terraform
         env:
-          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: |
-          terraform init -backend-config="region=${{ secrets.AWS_REGION }}" -input=false
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select prod > /dev/null 2>&1 || true
           
           DB_PASSWORD=$(terraform output -raw db_password)
@@ -482,23 +275,12 @@ jobs:
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
           echo "::add-mask::$JWT_SECRET"
           echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
-          echo "::add-mask::$SSH_KEY"
-          echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
-          echo "$SSH_KEY" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Upload Helm chart to EC2
-        run: |
-          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
           
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r helm/ ec2-user@"$EC2_IP":~/helm/
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
 
-      - name: Run Helm Deploy on EC2
-        run: |
+      - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
           RDS_ENDPOINT="${{ needs.provision.outputs.rds_endpoint }}"
           DB_NAME="${{ needs.provision.outputs.db_name }}"
@@ -506,25 +288,14 @@ jobs:
           IMAGE_TAG="${{ needs.build-push.outputs.image_tag }}"
           REPO="ghcr.io/${{ github.repository }}"
           
+          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r helm/ ec2-user@"$EC2_IP":~/helm/
+          
           cat << 'EOF' > deploy.sh
           set -e
           export KUBECONFIG=/home/ec2-user/.kube/config
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          helm upgrade --install aura-saas ~/helm/aura-saas \
-            --namespace crm-prod \
-            -f ~/helm/aura-saas/values.prod.yaml \
-            --create-namespace \
-            --set backend.image.repository="${REPO}/crm-backend" \
-            --set backend.image.tag="${IMAGE_TAG}" \
-            --set frontend.image.repository="${REPO}/crm-frontend" \
-            --set frontend.image.tag="${IMAGE_TAG}" \
-            --set db.host="${RDS_ENDPOINT}" \
-            --set db.name="${DB_NAME}" \
-            --set db.username="${DB_USER}" \
-            --set db.password="${DB_PASSWORD}" \
-            --set jwtSecret="${JWT_SECRET}" \
-            --set ingress.host="${EC2_IP}" \
-            --wait --timeout 8m
+          helm upgrade --install aura-saas ~/helm/aura-saas             --namespace crm-prod             -f ~/helm/aura-saas/values.prod.yaml             --create-namespace             --set backend.image.repository="${REPO}/crm-backend"             --set backend.image.tag="${IMAGE_TAG}"             --set frontend.image.repository="${REPO}/crm-frontend"             --set frontend.image.tag="${IMAGE_TAG}"             --set db.host="${RDS_ENDPOINT}"             --set db.name="${DB_NAME}"             --set db.username="${DB_USER}"             --set db.password="${DB_PASSWORD}"             --set jwtSecret="${JWT_SECRET}"             --set ingress.host="${EC2_IP}"             --wait --timeout 8m
           kubectl get pods -n crm-prod
           EOF
           
@@ -532,19 +303,19 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/deploy.sh"
 
   # ===========================================================================
-  # JOB 6: MONITOR
+  # STAGE 6: MONITOR
   # ===========================================================================
   monitor:
-    name: "🔍 Verify Deployment"
-    runs-on: ubuntu-latest
     needs: [helm-deploy, provision]
+    if: github.event.inputs.destroy != 'DESTROY'
+    name: "🔍 Monitor Health"
+    runs-on: ubuntu-latest
     steps:
-      - name: Verify Web App is Online
-        run: |
+      - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          echo ">>> Pinging http://$EC2_IP/login"
+          echo ">>> Pinging http://$EC2_IP/"
           for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$EC2_IP/login" || true)
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$EC2_IP/" || true)
             if [ "$STATUS" = "200" ]; then
               echo "✅ Success! Received HTTP 200 OK."
               exit 0

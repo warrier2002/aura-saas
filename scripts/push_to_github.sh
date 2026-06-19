@@ -57,11 +57,6 @@ else
   echo "✓ Repository created: https://github.com/$GH_USER/$REPO_NAME"
 fi
 
-# ── Step 4: Update README badges to use real username ─────────────────────
-sed -i "s/YOUR_USERNAME/$GH_USER/g" /home/harshit-sharma/Documents/Project/README.md
-cd /home/harshit-sharma/Documents/Project
-git add README.md
-git commit --amend --no-edit 2>/dev/null || true
 
 # ── Step 5: Set remote and push ────────────────────────────────────────────
 echo "[4/4] Pushing code to GitHub..."
