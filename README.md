@@ -2,7 +2,15 @@
 
 > **MCA Major Project | 23ONMCR-753 | Chandigarh University**
 
-A production-grade, multi-tenant SaaS CRM platform demonstrating Kubernetes-native database isolation, JWT-secured APIs, and automated CI/CD via GitHub Actions.
+**NTPL Cloud SaaS** is a production-grade, multi-tenant Customer Relationship Management (CRM) platform that demonstrates real-world cloud-native engineering at every layer of the stack — from secure API design and containerisation, to Kubernetes orchestration and fully automated CI/CD pipelines.
+
+Built as an MCA Major Project at Chandigarh University, the system implements **database-per-tenant isolation** (Multi-Tenancy Option 1), where each customer organisation operates in a completely separate data context — enforced server-side via cryptographically signed JSON Web Tokens, never by a spoofable HTTP header.
+
+**What makes it different:**
+- 🔐 **Security-first backend** — passwords stored as scrypt/bcrypt hashes, JWT HS256 auth on every data endpoint, regex input validation, CORS allowlisting, and 10 KB payload limits
+- ☸️ **Kubernetes-native** — namespace-level tenant boundaries, Role-Based Access Control (RBAC), and Horizontal Pod Autoscaler (HPA) that dynamically scales replicas when CPU exceeds 70%
+- 🚀 **Full CI/CD pipeline** — GitHub Actions handles linting, security testing, Docker image builds (pushed to GHCR), SSH deployment, and scheduled vulnerability monitoring every 30 minutes
+- 🌐 **Interactive control panel** — a glassmorphism SaaS dashboard that visualises live HPA pod scaling, tenant switching, and real-time database operations
 
 [![CI — Lint & Test](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/ci.yml)
 [![Deploy — Build & Ship](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/deploy.yml/badge.svg)](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/deploy.yml)
