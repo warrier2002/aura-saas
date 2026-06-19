@@ -107,7 +107,7 @@ jobs:
           import re
 
           WEAK_DEFAULTS = [
-              'ntpl-super-secret-jwt-key-2026-change-in-prod',
+              'aura-super-secret-jwt-key-2026-change-in-prod',
               'super-secret-jwt-key-2026',
               'secret',
               'changeme',
@@ -238,7 +238,7 @@ jobs:
           # 1. Register a monitor user
           status, data = post_json("/signup", {
               "name": "Monitor Bot",
-              "email": "monitor@ci.ntpl.dev",
+              "email": "monitor@ci.aura.dev",
               "password": "MonitorPass123",
               "tenant_id": "a"
           })
@@ -247,7 +247,7 @@ jobs:
               if status == 409:
                   # Try login instead
                   s2, d2 = post_json("/login", {
-                      "email": "monitor@ci.ntpl.dev",
+                      "email": "monitor@ci.aura.dev",
                       "password": "MonitorPass123",
                       "tenant_id": "a"
                   })

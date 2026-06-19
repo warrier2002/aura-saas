@@ -1,0 +1,38 @@
+backend:
+  image:
+    repository: ghcr.io/YOUR_ORG/aura-saas-backend
+    tag: latest
+    pullPolicy: Always
+  replicas: 2
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+frontend:
+  image:
+    repository: ghcr.io/YOUR_ORG/aura-saas-frontend
+    tag: latest
+    pullPolicy: Always
+  replicas: 2
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "100m"
+      memory: "128Mi"
+
+db:
+  host: ""
+  name: ""
+  username: ""
+  password: ""
+
+jwtSecret: ""
+
+ingress:
+  host: ""

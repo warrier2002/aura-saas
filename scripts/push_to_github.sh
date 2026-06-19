@@ -9,11 +9,11 @@
 # ─────────────────────────────────────────────────────────────────────────────
 set -e
 
-REPO_NAME="ntpl-crm"
+REPO_NAME="aura-saas"
 REPO_DESC="Multi-Tenant SaaS CRM — Kubernetes, JWT Security, CI/CD (MCA 23ONMCR-753)"
 
 echo "=================================================="
-echo " NTPL CRM — GitHub Setup Script"
+echo " Aura SaaS — GitHub Setup Script"
 echo "=================================================="
 
 # ── Step 1: Install GitHub CLI ─────────────────────────────────────────────

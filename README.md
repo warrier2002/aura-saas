@@ -1,134 +1,98 @@
-# NTPL Cloud SaaS — Multi-Tenant CRM
+# Aura SaaS Platform — Multi-Tenant Cloud Native Architecture
 
-> **MCA Major Project | 23ONMCR-753 | Chandigarh University**
+**Aura SaaS Platform** is a production-grade, multi-tenant Customer Relationship Management (CRM) platform that demonstrates real-world cloud-native engineering at every layer of the stack — from secure API design and containerisation, to Kubernetes orchestration, disaster recovery, and fully automated CI/CD pipelines.
 
-**NTPL Cloud SaaS** is a production-grade, multi-tenant Customer Relationship Management (CRM) platform that demonstrates real-world cloud-native engineering at every layer of the stack — from secure API design and containerisation, to Kubernetes orchestration and fully automated CI/CD pipelines.
+the system implements **Schema-Based Tenant Isolation** within a single PostgreSQL instance, enforced strictly on the server-side via `SET search_path` during database queries. Tenant identities are cryptographically bound to JSON Web Tokens, preventing any cross-tenant data leaks.
 
-Built as an MCA Major Project at Chandigarh University, the system implements **database-per-tenant isolation** (Multi-Tenancy Option 1), where each customer organisation operates in a completely separate data context — enforced server-side via cryptographically signed JSON Web Tokens, never by a spoofable HTTP header.
+**Key Architecture Pillars:**
+- 🔐 **Security-First Backend** — Express.js API, bcrypt password hashing, JWT HS256 auth, Helmet HTTP security headers, parameterized SQL queries, and strict CORS.
+- ☸️ **Kubernetes & Autoscaling** — Helm-managed deployments, Kubernetes Services, Ingress Controllers, and Horizontal Pod Autoscalers (HPA) that dynamically scale backend replicas from 2 to 10 pods when CPU exceeds 70%.
+- 🚀 **CI/CD Automation** — GitHub Actions for linting, testing, Docker builds (Alpine-optimised), and deployments. A fully functional `Jenkinsfile` is also included for multi-cloud pipeline portability.
+- 🌍 **Multi-Cloud Readiness & DR** — Terraform IaC guarantees zero-downtime portability to AWS, Azure, or GCP, backed by a structured Chaos Engineering and Disaster Recovery (DR) playbook.
+- 🌐 **Interactive Glassmorphism UI** — A modern, highly interactive, visually striking frontend dashboard for managing multi-tenant customer records.
 
-**What makes it different:**
-- 🔐 **Security-first backend** — passwords stored as scrypt/bcrypt hashes, JWT HS256 auth on every data endpoint, regex input validation, CORS allowlisting, and 10 KB payload limits
-- ☸️ **Kubernetes-native** — namespace-level tenant boundaries, Role-Based Access Control (RBAC), and Horizontal Pod Autoscaler (HPA) that dynamically scales replicas when CPU exceeds 70%
-- 🚀 **Full CI/CD pipeline** — GitHub Actions handles linting, security testing, Docker image builds (pushed to GHCR), SSH deployment, and scheduled vulnerability monitoring every 30 minutes
-- 🌐 **Interactive control panel** — a glassmorphism SaaS dashboard that visualises live HPA pod scaling, tenant switching, and real-time database operations
-
-[![CI — Lint & Test](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/ci.yml)
-[![Deploy — Build & Ship](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/deploy.yml/badge.svg)](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/deploy.yml)
-[![Monitor — Health & Security](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/monitor.yml/badge.svg)](https://github.com/YOUR_USERNAME/ntpl-crm/actions/workflows/monitor.yml)
+[![CI — Lint & Test](https://github.com/warrier2002/aura-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/warrier2002/aura-saas/actions/workflows/ci.yml)
+[![Deploy — Build & Ship](https://github.com/warrier2002/aura-saas/actions/workflows/deploy.yml/badge.svg)](https://github.com/warrier2002/aura-saas/actions/workflows/deploy.yml)
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      GitHub Actions                          │
-│  CI (lint/test) ──► Deploy (Docker → GHCR → SSH) ──► Monitor│
+│                 CI/CD (GitHub Actions / Jenkins)            │
+│  Linting/Testing ──► Docker Build ──► Terraform ──► Helm    │
 └─────────────────────────────────────────────────────────────┘
-         │
-         ▼
-┌──────────────────────┐     ┌──────────────────────────────────┐
-│  Frontend (index.html)│────►│  Flask Mock Server (port 5000)  │
-│  JWT Auth Overlay     │     │  or Express Backend (port 3001) │
-│  sessionStorage token │     │  JWT middleware (HS256)         │
-└──────────────────────┘     │  bcrypt/scrypt password hashing  │
-                              └──────────────────────────────────┘
-                                          │
-                    ┌─────────────────────┼──────────────────────┐
-                    ▼                     ▼                      ▼
-            Tenant A DB            Tenant B DB          (future tenants)
-         crm_db_tenant_a        crm_db_tenant_b
+                               │
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 Kubernetes Cluster (k3s/EKS)                │
+│                                                             │
+│  ┌───────────────┐     ┌─────────────────────────────────┐  │
+│  │ Nginx Ingress ├───► │ Aura Frontend (Glassmorphism) │  │
+│  │ (LoadBalancer)│     │ HPA Auto-Scaling (2-10 pods)  │  │
+│  └──────┬────────┘     └─────────────────────────────────┘  │
+│         │                                                   │
+│         │              ┌─────────────────────────────────┐  │
+│         └────────────► │ Aura Backend (Node.js)          │  │
+│                        │ HPA Auto-Scaling (2-10 pods)  │  │
+│                        └────────┬────────────────────────┘  │
+│                                 │                           │
+│                                 ▼                           │
+│                 ┌────────────────────────────────┐          │
+│                 │ PostgreSQL Database            │          │
+│                 │ ├─ Schema: tenant_a          │          │
+│                 │ ├─ Schema: tenant_b          │          │
+│                 └────────────────────────────────┘          │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## Security Features
+## 🔒 Security Features
 
 | Feature | Implementation |
 |---|---|
-| Password storage | `scrypt` (Flask) / `bcrypt` (Node.js) — never plaintext |
-| Authentication | JWT HS256 — 8h expiry, signed tokens |
-| Tenant isolation | Tenant ID extracted from **JWT payload** (not spoofable header) |
-| Input validation | Regex on names, type checks on numbers, email format validation |
-| XSS prevention | `escapeHtml()` on all server data rendered in DOM |
-| CORS | Restricted to explicit allowlist in Express |
-| Payload limits | 10 KB body size limit on Express |
+| Tenant isolation | Database schema isolation (`SET search_path TO <tenant_id>`) |
+| Authentication | JWT HS256 — 8h expiry, roles encoded in token |
+| Password storage | `bcrypt` hashing (Cost factor 10) |
+| Input validation | Strict server-side type checking and format validation |
+| SQL Injection Guard | 100% parameterized queries via `pg` driver |
+| HTTP Security | `Helmet` integration and explicit CORS allowlist |
 | Session storage | `sessionStorage` (clears on tab close, not `localStorage`) |
+| XSS prevention | `escapeHTML()` sanitisation on frontend UI renders |
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-ntpl-crm/
-├── .github/
-│   └── workflows/
-│       ├── ci.yml          # Lint, test, security checks (runs on every push)
-│       ├── deploy.yml      # Docker build → GHCR → SSH deploy (main branch)
-│       └── monitor.yml     # Scheduled health & vulnerability monitoring
-├── docker/
-│   ├── Dockerfile.backend  # Node.js Express image
-│   └── Dockerfile.frontend # Static frontend image (nginx)
-├── k8s/                    # Kubernetes manifests
-├── terraform/              # IaC for cloud provisioning
-├── scripts/                # Helper scripts
-├── server/
-│   └── index.js            # Express backend (JWT secured, bcrypt)
-├── assignment.py           # Flask demo backend (JWT secured, scrypt)
-├── index.html              # Frontend SaaS console
-├── requirements.txt        # Python dependencies
+aura-saas/
+├── .github/workflows/      # Automated CI/CD (Testing, Deploy, Monitoring)
+├── docker/                 # Multi-stage Alpine Dockerfiles (Free-Tier optimized)
+├── helm/aura-saas/         # Kubernetes Helm charts (Deployments, HPA, Ingress)
+├── server/                 # Express.js secure backend API
+├── terraform/              # Infrastructure-as-Code (AWS EC2, RDS, Networking)
+├── scripts/                # Database initialization and setup utilities
+├── index.html              # Glassmorphism frontend UI
+├── Jenkinsfile             # Jenkins CI/CD pipeline migration proof-of-concept
+├── DR_AND_MIGRATION.md     # Multi-Cloud, Disaster Recovery, and Chaos Engineering plan
 └── README.md
 ```
 
-## Quick Start (Local)
+## 🎓 Academic Details
 
-### Flask Demo Server
-```bash
-pip install -r requirements.txt
-python3 assignment.py
-# → http://localhost:5000
-```
+- **Project:** Multi-Tenant SaaS Platform with IaC, Autoscaling, and Kubernetes.
 
-### Node.js Express Backend
-```bash
-cd server
-npm install
-node index.js
-# → http://localhost:3001
-```
 
-## GitHub Actions Setup
+## GitOps & Branching Strategy
 
-### Required Repository Secrets
-Go to **Settings → Secrets and variables → Actions → New repository secret**:
+To maintain high code quality and isolated testing environments, this project uses a GitFlow-inspired branching strategy mapped to GitHub Actions CI/CD pipelines:
 
-| Secret Name | Description |
-|---|---|
-| `DEPLOY_SSH_KEY` | Private SSH key for your deploy server |
-| `DEPLOY_HOST` | Server IP or hostname |
-| `DEPLOY_USER` | SSH username (e.g., `ubuntu`) |
-| `JWT_SECRET` | Strong random secret — generate with: `python3 -c "import secrets; print(secrets.token_hex(32))"` |
-| `DB_HOST` | PostgreSQL host |
-| `DB_USER` | PostgreSQL user |
-| `DB_PASSWORD` | PostgreSQL password |
-| `DB_NAME` | PostgreSQL database name |
+1. **Development (`dev` branch)**
+   - All ephemeral branches (`feature/*`, `bugfix/*`) are merged here.
+   - Deploys automatically to the **Dev Environment** (using `dev.tfvars` and `values.dev.yaml`).
+2. **Staging (`staging` branch)**
+   - Used for pre-production testing and QA.
+   - Deploys automatically to the **Staging Environment** (using `staging.tfvars` and `values.staging.yaml`).
+3. **Production (`main` branch)**
+   - The highly stable production release.
+   - Deploys automatically to the **Production Environment** (using `prod.tfvars` and `values.prod.yaml`).
 
-### Required Repository Variables
-Go to **Settings → Secrets and variables → Actions → Variables**:
-
-| Variable | Description |
-|---|---|
-| `APP_URL` | Public URL of your deployed frontend |
-| `BACKEND_URL` | Public URL of your deployed backend |
-
-### Workflow Overview
-
-| Workflow | Trigger | Jobs |
-|---|---|---|
-| `ci.yml` | Every push & PR | Python lint, Node.js test, JWT/bcrypt verification, frontend checks |
-| `deploy.yml` | Push to `main` | Build Docker images → push to GHCR → SSH deploy → smoke test |
-| `monitor.yml` | Every 30 min | Dependency audit (pip-audit + npm audit), Bandit SAST, live health check, auth enforcement check |
-
-## Academic Details
-
-- **Course:** MCA — Cloud Computing & DevOps  
-- **Registration:** 23ONMCR-753  
-- **Institution:** Chandigarh University  
-- **Project:** Multi-Tenant SaaS CRM with EKS, HPA, and CI/CD Pipeline
-# Multi_tenant_SAAS_application
+Each environment has isolated Terraform state files, separate Kubernetes namespaces (`crm-dev`, `crm-staging`, `crm-prod`), and environment-specific Horizontal Pod Autoscaler (HPA) configurations to balance performance with AWS Free Tier constraints.

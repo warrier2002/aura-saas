@@ -13,7 +13,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 echo -e "${BLUE}===============================================================${NC}"
-echo -e "${BLUE}   NTPL SaaS Multi-Tenant Backend Load Simulator               ${NC}"
+echo -e "${BLUE}   Aura SaaS Multi-Tenant Backend Load Simulator               ${NC}"
 echo -e "${BLUE}   Simulating traffic load for HPA validation                  ${NC}"
 echo -e "${BLUE}===============================================================${NC}"
 

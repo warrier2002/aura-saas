@@ -14,7 +14,7 @@ RED='\033[0;31m'
 NC='\033[0;0m' # No Color
 
 echo -e "${BLUE}===================================================================${NC}"
-echo -e "${BLUE}   NTPL SaaS Multi-Tenant Demo App Launcher                         ${NC}"
+echo -e "${BLUE}   Aura SaaS Multi-Tenant Demo App Launcher                         ${NC}"
 echo -e "${BLUE}   Developed for Chandigarh University MCA Major Project (23ONMCR-753)${NC}"
 echo -e "${BLUE}===================================================================${NC}"
 

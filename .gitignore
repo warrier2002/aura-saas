@@ -58,3 +58,15 @@ terraform/.terraform.lock.hcl
 # ─── Logs ─────────────────────────────────────────────────────────────────────
 *.log
 logs/
+
+# ─── Academic and Legacy ──────────────────────────────────────────────────────
+academic_docs/
+assignment.py
+templates/
+static/
+requirements.txt
+venv/
+__pycache__/
+
+# ─── Gemini AI Workspace ──────────────────────────────────────────────────────
+.gemini/

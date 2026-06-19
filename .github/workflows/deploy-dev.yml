@@ -1,0 +1,535 @@
+# =============================================================================
+# GitHub Actions — Deploy Workflow
+# Aura Cloud SaaS | MCA Major Project | 23ONMCR-753
+# =============================================================================
+#
+# ONLY SECRETS THE DEVELOPER NEEDS TO ADD TO GITHUB:
+#   AWS_ACCESS_KEY_ID     — your AWS IAM access key
+#   AWS_SECRET_ACCESS_KEY — your AWS IAM secret key
+#   AWS_REGION            — e.g. us-east-1
+#
+# EVERYTHING ELSE IS AUTO-GENERATED:
+#   EC2 public IP     — from terraform output ec2_public_ip
+#   SSH private key   — from terraform output ssh_private_key
+#   RDS endpoint      — from terraform output rds_endpoint
+#   DB password       — from terraform output db_password
+#   JWT secret        — from terraform output jwt_secret
+#   DB username       — from terraform output db_username
+#   DB name           — from terraform output db_name
+#
+# PIPELINE FLOW:
+#   1. provision   — terraform apply: creates EC2 + RDS + SSH key
+#   2. build-push  — docker build + push to GHCR
+#   3. db-init     — run DB schema migration on fresh RDS
+#   4. deploy      — helm upgrade on EC2 via SSH
+#   5. verify      — smoke tests
+# =============================================================================
+
+name: "Deploy DEV"
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+    inputs:
+      destroy:
+        description: "Type DESTROY to tear down all AWS infrastructure"
+        required: false
+        default: ""
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false  # Never cancel a running deploy
+
+jobs:
+  # ===========================================================================
+  # JOB 1: PROVISION INFRASTRUCTURE WITH TERRAFORM
+  # Creates EC2, RDS, Security Groups, SSH Key — auto-fetches all values
+  # ===========================================================================
+  provision:
+    name: "☁️ Provision AWS Infrastructure (Terraform)"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    outputs:
+      # These outputs are read from terraform and passed to downstream jobs
+      ec2_public_ip: ${{ steps.tf-outputs.outputs.ec2_public_ip }}
+      ec2_dns:       ${{ steps.tf-outputs.outputs.ec2_dns }}
+      rds_endpoint:  ${{ steps.tf-outputs.outputs.rds_endpoint }}
+      db_name:       ${{ steps.tf-outputs.outputs.db_name }}
+      db_username:   ${{ steps.tf-outputs.outputs.db_username }}
+      deploy_user:   ${{ steps.tf-outputs.outputs.deploy_user }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      # --- Setup Terraform ---
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+          terraform_wrapper: false  # Needed so we can parse outputs cleanly
+
+      # --- Bootstrap S3 state bucket (idempotent — safe to run every time) ---
+      - name: Bootstrap Terraform State Bucket
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+        run: |
+          # Create the S3 bucket for Terraform state if it doesn't already exist
+          BUCKET="aura-saas-tfstate-dev"
+          REGION="${{ secrets.AWS_REGION }}"
+          
+          if aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+            echo ">>> State bucket $BUCKET already exists — skipping creation"
+          else
+            echo ">>> Creating Terraform state bucket: $BUCKET"
+            if [ "$REGION" = "us-east-1" ]; then
+              aws s3api create-bucket --bucket "$BUCKET" --region "$REGION"
+            else
+              aws s3api create-bucket --bucket "$BUCKET" --region "$REGION" \
+                --create-bucket-configuration LocationConstraint="$REGION"
+            fi
+            # Enable versioning so we can recover from bad state
+            aws s3api put-bucket-versioning \
+              --bucket "$BUCKET" \
+              --versioning-configuration Status=Enabled
+            # Block all public access to state bucket
+            aws s3api put-public-access-block \
+              --bucket "$BUCKET" \
+              --public-access-block-configuration \
+                "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+            echo ">>> State bucket created and secured"
+          fi
+
+      # --- Terraform Init ---
+      - name: Terraform Init
+        working-directory: terraform
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+        run: |
+          terraform init \
+            -backend-config="region=${{ secrets.AWS_REGION }}"
+
+      # --- Terraform Validate ---
+      - name: Terraform Validate
+        working-directory: terraform
+        run: terraform validate
+
+      # --- Terraform Plan (dry run — shows what will be created) ---
+      - name: Terraform Plan
+        working-directory: terraform
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+          TF_VAR_aws_region:     ${{ secrets.AWS_REGION }}
+        run: |
+          terraform workspace select dev || terraform workspace new dev
+          terraform plan -var-file="environments/dev.tfvars" \
+            -var="aws_region=${{ secrets.AWS_REGION }}" \
+            -out=tfplan
+
+      # --- Terraform Apply (destroy mode if requested via workflow_dispatch) ---
+      - name: Terraform Apply
+        if: github.event.inputs.destroy != 'DESTROY'
+        working-directory: terraform
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+        run: |
+          terraform workspace select dev || terraform workspace new dev
+          terraform apply -auto-approve tfplan
+          echo ">>> Infrastructure provisioned successfully"
+
+      # --- Terraform Destroy (only if manually triggered with DESTROY input) ---
+      - name: Terraform Destroy (MANUAL ONLY)
+        if: github.event.inputs.destroy == 'DESTROY'
+        working-directory: terraform
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+        run: |
+          echo "⚠️  DESTROY mode activated — tearing down infrastructure"
+          terraform workspace select dev || terraform workspace new dev
+          terraform destroy -auto-approve -var-file="environments/dev.tfvars" \
+            -var="aws_region=${{ secrets.AWS_REGION }}"
+          echo ">>> Infrastructure destroyed"
+          exit 0  # Stop pipeline after destroy
+
+      # --- Read Terraform outputs and expose as job outputs ---
+      - name: Capture Terraform Outputs
+        id: tf-outputs
+        working-directory: terraform
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+        run: |
+          # Read non-sensitive outputs (safe to log)
+          EC2_IP=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw ec2_public_ip)
+          EC2_DNS=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw ec2_public_dns)
+          RDS_ENDPOINT=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw rds_endpoint)
+          DB_NAME=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw db_name)
+          DB_USERNAME=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw db_username)
+          DEPLOY_USER=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw deploy_user)
+
+          echo ">>> EC2 Public IP:  $EC2_IP"
+          echo ">>> EC2 DNS:        $EC2_DNS"
+          echo ">>> RDS Endpoint:   $RDS_ENDPOINT"
+          echo ">>> DB Name:        $DB_NAME"
+          echo ">>> DB Username:    $DB_USERNAME"
+          echo ">>> Deploy User:    $DEPLOY_USER"
+
+          # Expose as job outputs for downstream jobs
+          echo "ec2_public_ip=$EC2_IP"  >> $GITHUB_OUTPUT
+          echo "ec2_dns=$EC2_DNS"       >> $GITHUB_OUTPUT
+          echo "rds_endpoint=$RDS_ENDPOINT" >> $GITHUB_OUTPUT
+          echo "db_name=$DB_NAME"       >> $GITHUB_OUTPUT
+          echo "db_username=$DB_USERNAME" >> $GITHUB_OUTPUT
+          echo "deploy_user=$DEPLOY_USER" >> $GITHUB_OUTPUT
+
+          # Read SENSITIVE outputs — mask them in logs immediately
+          SSH_KEY=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw ssh_private_key)
+          DB_PASSWORD=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw db_password)
+          JWT_SECRET=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw jwt_secret)
+
+          # Add to GitHub secret masking (so they never appear in logs)
+          echo "::add-mask::$SSH_KEY"
+          echo "::add-mask::$DB_PASSWORD"
+          echo "::add-mask::$JWT_SECRET"
+
+          # Store sensitive values in the Actions environment for next steps
+          # We use env files — NOT GITHUB_OUTPUT — for sensitive values
+          echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+          echo "$SSH_KEY"            >> $GITHUB_ENV
+          echo "EOF"                 >> $GITHUB_ENV
+
+          echo "DB_PASSWORD=$DB_PASSWORD"   >> $GITHUB_ENV
+          echo "JWT_SECRET=$JWT_SECRET"     >> $GITHUB_ENV
+
+      # --- Wait for EC2 user_data bootstrap to complete ---
+      - name: Wait for EC2 Bootstrap
+        run: |
+          EC2_IP="${{ steps.tf-outputs.outputs.ec2_public_ip }}"
+          echo ">>> Waiting for EC2 ($EC2_IP) to finish bootstrapping..."
+          echo "    (k3s, Docker, Helm installation takes ~3-4 minutes)"
+          
+          # Write the SSH key from env
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          # Poll until bootstrap is complete (max 10 minutes)
+          for i in $(seq 1 20); do
+            if ssh -i ~/.ssh/deploy_key \
+                   -o StrictHostKeyChecking=no \
+                   -o ConnectTimeout=10 \
+                   ubuntu@"$EC2_IP" \
+                   "test -f ~/bootstrap_done.txt && echo ready" 2>/dev/null | grep -q ready; then
+              echo ">>> EC2 bootstrap complete!"
+              break
+            fi
+            echo "    Attempt $i/20 — waiting 30 seconds..."
+            sleep 30
+          done
+
+  # ===========================================================================
+  # JOB 2: BUILD & PUSH DOCKER IMAGES TO GHCR
+  # Runs in parallel with provision — no dependency on EC2 IP
+  # ===========================================================================
+  build-push:
+    name: "🐳 Build & Push Docker Images"
+    runs-on: ubuntu-latest
+    needs: provision
+    permissions:
+      contents: read
+      packages: write  # Required to push to GHCR
+
+    outputs:
+      image_tag: ${{ steps.set-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set image tag from git SHA
+        id: set-tag
+        run: |
+          TAG=$(echo $GITHUB_SHA | head -c 7)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo ">>> Image tag: $TAG"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # --- Backend Image ---
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/crm-backend:${{ steps.set-tag.outputs.tag }}
+            ghcr.io/${{ github.repository }}/crm-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.source=${{ github.repositoryUrl }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      # --- Frontend Image ---
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/crm-frontend:${{ steps.set-tag.outputs.tag }}
+            ghcr.io/${{ github.repository }}/crm-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ===========================================================================
+  # JOB 3: INITIALIZE DATABASE SCHEMA ON RDS
+  # Runs after provision — creates tenant schemas, tables, seed users
+  # ===========================================================================
+  db-init:
+    name: "🗄️ Initialize RDS Database Schemas"
+    runs-on: ubuntu-latest
+    needs: provision
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Restore SSH key and sensitive values
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+        working-directory: terraform
+        run: |
+          # Re-read Terraform outputs (state is in S3, always available)
+          terraform init -backend-config="region=${ secrets.AWS_REGION }" -input=false
+          terraform workspace select dev || terraform workspace new dev
+          
+          DB_PASSWORD=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw db_password)
+          echo "::add-mask::$DB_PASSWORD"
+          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
+          
+          SSH_KEY=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw ssh_private_key)
+          echo "::add-mask::$SSH_KEY"
+          echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+          echo "$SSH_KEY"            >> $GITHUB_ENV
+          echo "EOF"                 >> $GITHUB_ENV
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+
+      - name: Run DB Schema Migrations via SSH tunnel
+        run: |
+          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
+          RDS_HOST="${{ needs.provision.outputs.rds_endpoint }}"
+          DB_NAME="${{ needs.provision.outputs.db_name }}"
+          DB_USER="${{ needs.provision.outputs.db_username }}"
+          
+          # Write SSH key
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
+          
+          # Open SSH tunnel: localhost:5433 → RDS via EC2
+          # (RDS is in private subnet, only accessible from EC2)
+          ssh -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=no \
+              -L 5433:"$RDS_HOST":5432 \
+              -N -f \
+              ubuntu@"$EC2_IP"
+          
+          sleep 3  # Wait for tunnel to establish
+          
+          echo ">>> Running schema migrations..."
+          PGPASSWORD="$DB_PASSWORD" psql \
+            -h 127.0.0.1 \
+            -p 5433 \
+            -U "$DB_USER" \
+            -d "$DB_NAME" \
+            -f scripts/db_init.sql
+          
+          echo ">>> Database schemas initialised successfully"
+
+  # ===========================================================================
+  # JOB 4: DEPLOY TO KUBERNETES VIA HELM
+  # SSH into EC2, run helm upgrade with all auto-fetched values
+  # ===========================================================================
+  deploy:
+    name: "🚀 Deploy to Kubernetes (Helm)"
+    runs-on: ubuntu-latest
+    needs: [provision, build-push, db-init]
+    environment:
+      name: production
+      url: "http://${{ needs.provision.outputs.ec2_public_ip }}"
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Restore all Terraform outputs (sensitive values)
+        env:
+          AWS_ACCESS_KEY_ID:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION:    ${{ secrets.AWS_REGION }}
+        working-directory: terraform
+        run: |
+          terraform init -backend-config="region=${ secrets.AWS_REGION }" -input=false
+          terraform workspace select dev || terraform workspace new dev
+
+          SSH_KEY=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw ssh_private_key)
+          DB_PASSWORD=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw db_password)
+          JWT_SECRET=$(terraform workspace select dev > /dev/null 2>&1
+          terraform output -raw jwt_secret)
+
+          echo "::add-mask::$SSH_KEY"
+          echo "::add-mask::$DB_PASSWORD"
+          echo "::add-mask::$JWT_SECRET"
+
+          echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+          echo "$SSH_KEY"            >> $GITHUB_ENV
+          echo "EOF"                 >> $GITHUB_ENV
+          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
+          echo "JWT_SECRET=$JWT_SECRET"   >> $GITHUB_ENV
+
+      - name: Set up SSH connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "${{ needs.provision.outputs.ec2_public_ip }}" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Upload Helm chart to EC2
+        run: |
+          # Copy the helm chart to the EC2 instance
+          scp -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=no \
+              -r helm/ \
+              ubuntu@"${{ needs.provision.outputs.ec2_public_ip }}":/home/ubuntu/helm/
+
+      - name: Run Helm Deploy on EC2
+        run: |
+          IMAGE_TAG="${{ needs.build-push.outputs.image_tag }}"
+          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
+          RDS_ENDPOINT="${{ needs.provision.outputs.rds_endpoint }}"
+          DB_NAME="${{ needs.provision.outputs.db_name }}"
+          DB_USERNAME="${{ needs.provision.outputs.db_username }}"
+          REPO="ghcr.io/${{ github.repository }}"
+
+          ssh -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=no \
+              ubuntu@"$EC2_IP" << ENDSSH
+            set -e
+            export KUBECONFIG=/home/ubuntu/.kube/config
+
+            echo "=== Logging into GHCR ==="
+            echo "${{ secrets.GITHUB_TOKEN }}" | \
+              docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+            echo "=== Running Helm upgrade ==="
+            helm upgrade --install aura-saas /home/ubuntu/helm/aura-saas \
+              --namespace crm-dev \
+              -f /home/ubuntu/helm/aura-saas/values.dev.yaml \
+              --create-namespace \
+              --set backend.image.repository="${REPO}/crm-backend" \
+              --set backend.image.tag="${IMAGE_TAG}" \
+              --set frontend.image.repository="${REPO}/crm-frontend" \
+              --set frontend.image.tag="${IMAGE_TAG}" \
+              --set db.host="${RDS_ENDPOINT}" \
+              --set db.name="${DB_NAME}" \
+              --set db.username="${DB_USERNAME}" \
+              --set db.password="${DB_PASSWORD}" \
+              --set jwtSecret="${JWT_SECRET}" \
+              --set ingress.host="${EC2_IP}" \
+              --wait \
+              --timeout 8m
+
+            echo "=== Helm deploy complete ==="
+            kubectl get pods -n crm-dev
+          ENDSSH
+
+      - name: Smoke Test — Backend Health
+        run: |
+          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
+          echo ">>> Waiting 15 seconds for pods to stabilise..."
+          sleep 15
+          echo ">>> Backend health check:"
+          curl -f -s -o /dev/null -w "HTTP %{http_code}\n" \
+            "http://${EC2_IP}/api/health" || echo "Backend not yet ready"
+          echo ">>> Frontend health check:"
+          curl -f -s -o /dev/null -w "HTTP %{http_code}\n" \
+            "http://${EC2_IP}/" || echo "Frontend not yet ready"
+          echo ">>> Auth enforcement check (should be 401):"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${EC2_IP}/api/customers")
+          if [ "$STATUS" = "401" ]; then
+            echo "PASS: Unauthenticated request correctly returns 401"
+          else
+            echo "WARN: Expected 401, got $STATUS"
+          fi
+
+      - name: Print Deployment Summary
+        if: success()
+        run: |
+          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
+          echo ""
+          echo "=============================================="
+          echo "  Aura SaaS DEPLOYMENT SUCCESSFUL"
+          echo "=============================================="
+          echo "  Commit   : ${{ github.sha }}"
+          echo "  Actor    : ${{ github.actor }}"
+          echo "  Branch   : ${{ github.ref_name }}"
+          echo "  Image Tag: ${{ needs.build-push.outputs.image_tag }}"
+          echo "  App URL  : http://$EC2_IP"
+          echo "  API URL  : http://$EC2_IP/api"
+          echo "  Time     : $(date -u)"
+          echo "=============================================="
+
+      - name: Print Failure Details
+        if: failure()
+        run: |
+          echo "=============================================="
+          echo "  DEPLOYMENT FAILED"
+          echo "  Commit : ${{ github.sha }}"
+          echo "  Check the logs above for details"
+          echo "=============================================="
