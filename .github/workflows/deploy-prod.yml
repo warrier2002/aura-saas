@@ -388,19 +388,20 @@ jobs:
           # Read SENSITIVE outputs — mask them in logs immediately
           SSH_KEY=$(terraform workspace select prod > /dev/null 2>&1
           terraform output -raw ssh_private_key)
-          DB_PASSWORD=$(terraform workspace select prod > /dev/null 2>&1
-          terraform output -raw db_password)
-          JWT_SECRET=$(terraform workspace select prod > /dev/null 2>&1
-          terraform output -raw jwt_secret)
-
-          # Add to GitHub secret masking (so they never appear in logs)
-          echo "::add-mask::$SSH_KEY"
+                    DB_PASSWORD=$(terraform workspace select prod > /dev/null 2>&1 && terraform output -raw db_password)
           echo "::add-mask::$DB_PASSWORD"
-          echo "::add-mask::$JWT_SECRET"
-
-          # Store sensitive values in the Actions environment for next steps
-          # We use env files — NOT GITHUB_OUTPUT — for sensitive values
+          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
+          
+          SSH_KEY=$(terraform workspace select prod > /dev/null 2>&1 && terraform output -raw ssh_private_key)
+          echo "::add-mask::$SSH_KEY"
           echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+          echo "$SSH_KEY"            >> $GITHUB_ENV
+          echo "EOF"                 >> $GITHUB_ENV
+          
+          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+          echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+          echo "DB_USER=$(terraform output -raw db_username)" >> $GITHUB_ENV
           echo "$SSH_KEY"            >> $GITHUB_ENV
           echo "EOF"                 >> $GITHUB_ENV
 
@@ -529,15 +530,20 @@ jobs:
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}" -input=false
           terraform workspace select prod || terraform workspace new prod
           
-          DB_PASSWORD=$(terraform workspace select prod > /dev/null 2>&1
-          terraform output -raw db_password)
+                    DB_PASSWORD=$(terraform workspace select prod > /dev/null 2>&1 && terraform output -raw db_password)
           echo "::add-mask::$DB_PASSWORD"
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
           
-          SSH_KEY=$(terraform workspace select prod > /dev/null 2>&1
-          terraform output -raw ssh_private_key)
+          SSH_KEY=$(terraform workspace select prod > /dev/null 2>&1 && terraform output -raw ssh_private_key)
           echo "::add-mask::$SSH_KEY"
           echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+          echo "$SSH_KEY"            >> $GITHUB_ENV
+          echo "EOF"                 >> $GITHUB_ENV
+          
+          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+          echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+          echo "DB_USER=$(terraform output -raw db_username)" >> $GITHUB_ENV
           echo "$SSH_KEY"            >> $GITHUB_ENV
           echo "EOF"                 >> $GITHUB_ENV
 
@@ -548,11 +554,7 @@ jobs:
 
       - name: Run DB Schema Migrations via SSH tunnel
         run: |
-          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          RDS_HOST="${{ needs.provision.outputs.rds_endpoint }}"
-          DB_NAME="${{ needs.provision.outputs.db_name }}"
-          DB_USER="${{ needs.provision.outputs.db_username }}"
-          
+                    
           # Write SSH key
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
@@ -607,16 +609,20 @@ jobs:
 
           SSH_KEY=$(terraform workspace select prod > /dev/null 2>&1
           terraform output -raw ssh_private_key)
-          DB_PASSWORD=$(terraform workspace select prod > /dev/null 2>&1
-          terraform output -raw db_password)
-          JWT_SECRET=$(terraform workspace select prod > /dev/null 2>&1
-          terraform output -raw jwt_secret)
-
-          echo "::add-mask::$SSH_KEY"
+                    DB_PASSWORD=$(terraform workspace select prod > /dev/null 2>&1 && terraform output -raw db_password)
           echo "::add-mask::$DB_PASSWORD"
-          echo "::add-mask::$JWT_SECRET"
-
+          echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
+          
+          SSH_KEY=$(terraform workspace select prod > /dev/null 2>&1 && terraform output -raw ssh_private_key)
+          echo "::add-mask::$SSH_KEY"
           echo "SSH_PRIVATE_KEY<<EOF" >> $GITHUB_ENV
+          echo "$SSH_KEY"            >> $GITHUB_ENV
+          echo "EOF"                 >> $GITHUB_ENV
+          
+          echo "EC2_IP=$(terraform output -raw ec2_public_ip)" >> $GITHUB_ENV
+          echo "RDS_HOST=$(terraform output -raw rds_endpoint)" >> $GITHUB_ENV
+          echo "DB_NAME=$(terraform output -raw db_name)" >> $GITHUB_ENV
+          echo "DB_USER=$(terraform output -raw db_username)" >> $GITHUB_ENV
           echo "$SSH_KEY"            >> $GITHUB_ENV
           echo "EOF"                 >> $GITHUB_ENV
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
