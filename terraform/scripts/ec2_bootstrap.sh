@@ -11,6 +11,7 @@
 set -euo pipefail
 
 PROJECT_NAME="${project_name}"  # Injected by Terraform templatefile()
+# Force recreation: trigger user_data update
 
 echo "==================================================="
 echo "  CRM — EC2 Bootstrap Starting"

@@ -256,6 +256,7 @@ resource "aws_instance" "crm_server" {
   user_data = base64encode(templatefile("${path.module}/scripts/ec2_bootstrap.sh", {
     project_name = var.project_name
   }))
+  user_data_replace_on_change = true
 
   # Root volume — 20 GB gp3 (free tier allows up to 30 GB gp2/gp3)
   root_block_device {
