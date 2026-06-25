@@ -26,13 +26,13 @@ jobs:
           ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
           
           echo "==== K3S SYSTEM PODS ===="
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "kubectl get pods -n kube-system"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "KUBECONFIG=~/.kube/config kubectl get pods -n kube-system"
           
           echo "==== ALL RESOURCES IN CRM-DEV ===="
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "kubectl get all -n crm-dev"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "KUBECONFIG=~/.kube/config kubectl get all -n crm-dev"
           
           echo "==== HELM STATUS ===="
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "export KUBECONFIG=/home/ec2-user/.kube/config && helm list -A && helm status aura-saas -n crm-dev"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "export KUBECONFIG=/home/ec2-user/.kube/config && helm list -A && helm status aura-saas -n crm-dev || true"
           
           echo "==== FILES IN HELM DIR ===="
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "ls -la ~/helm/aura-saas/templates"
