@@ -207,7 +207,7 @@ jobs:
             --set db.username="${DB_USER}" \
             --set db.password="${DB_PASSWORD}" \
             --set jwtSecret="${JWT_SECRET}" \
-            --set ingress.host="${EC2_IP}" \
+            --set ingress.host="${EC2_IP}.nip.io" \
             --wait --timeout 8m
           kubectl get pods -n crm-${{ inputs.environment }}
           EOF
@@ -225,9 +225,9 @@ jobs:
     steps:
       - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          echo ">>> Pinging http://$EC2_IP/"
+          echo ">>> Pinging http://${EC2_IP}.nip.io/"
           for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$EC2_IP/" || true)
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${EC2_IP}.nip.io/" || true)
             if [ "$STATUS" = "200" ]; then
               echo "✅ Success! Received HTTP 200 OK."
               exit 0
