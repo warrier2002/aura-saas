@@ -129,7 +129,7 @@ jobs:
           ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no scripts/db_init.sql ec2-user@"$EC2_IP":~/db_init.sql
           
-          cat << 'EOF' > run_db_init.sh
+          cat << EOF > run_db_init.sh
           export PGPASSWORD="${DB_PASSWORD}"
           docker run --rm -v ~/db_init.sql:/db_init.sql -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "${DB_NAME}" -f /db_init.sql
           EOF
@@ -184,7 +184,7 @@ jobs:
           ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r helm/ ec2-user@"$EC2_IP":~/helm/
           
-          cat << 'EOF' > deploy.sh
+          cat << EOF > deploy.sh
           set -e
           export KUBECONFIG=/home/ec2-user/.kube/config
           # We do not strictly need docker login if images are public, but keeping it
