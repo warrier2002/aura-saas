@@ -10,9 +10,8 @@ the system implements **Schema-Based Tenant Isolation** within a single PostgreS
 - 🚀 **CI/CD Automation** — GitHub Actions for linting, testing, Docker builds (Alpine-optimised), and deployments. A fully functional `Jenkinsfile` is also included for multi-cloud pipeline portability.
 - 🌍 **Multi-Cloud Readiness & DR** — Terraform IaC guarantees zero-downtime portability to AWS, Azure, or GCP, backed by a structured Chaos Engineering and Disaster Recovery (DR) playbook.
 - 🌐 **Interactive Glassmorphism UI** — A modern, highly interactive, visually striking frontend dashboard for managing multi-tenant customer records.
-
-[![CI — Lint & Test](https://github.com/warrier2002/aura-saas/actions/workflows/ci.yml/badge.svg)](https://github.com/warrier2002/aura-saas/actions/workflows/ci.yml)
-[![Deploy — Build & Ship](https://github.com/warrier2002/aura-saas/actions/workflows/deploy.yml/badge.svg)](https://github.com/warrier2002/aura-saas/actions/workflows/deploy.yml)
+[![CI — Lint & Test](https://github.com/warrier2002/aura-saas/actions/workflows/deploy-dev.yml/badge.svg)](https://github.com/warrier2002/aura-saas/actions/workflows/deploy-dev.yml)
+[![Deploy — Build & Ship](https://github.com/warrier2002/aura-saas/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/warrier2002/aura-saas/actions/workflows/deploy-prod.yml)
 
 ---
 

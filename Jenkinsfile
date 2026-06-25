@@ -51,7 +51,7 @@ pipeline {
                 echo 'Fetching Kubeconfig from Terraform...'
                 dir('terraform') {
                     // Extract kubeconfig from terraform output or SSH to the master node to run helm
-                    sh 'terraform output -raw EC2_PUBLIC_IP > ec2_ip.txt'
+                    sh 'terraform output -raw ec2_public_ip > ec2_ip.txt'
                 }
                 
                 echo 'Deploying via Helm over SSH...'
@@ -60,7 +60,7 @@ pipeline {
                     
                     // In a real Jenkins setup, use the SSH Agent plugin
                     sh """
-                    ssh -o StrictHostKeyChecking=no ubuntu@${ec2Ip} '
+                    ssh -o StrictHostKeyChecking=no ec2-user@${ec2Ip} '
                         helm upgrade --install aura-saas ./helm/aura-saas \\
                         --set backend.image.repository=ghcr.io/YOUR_ORG/aura-saas-backend \\
                         --set backend.image.tag=${env.BUILD_ID} \\
