@@ -22,7 +22,6 @@ echo "==================================================="
 # --- System Update ---
 dnf update -y
 dnf install -y \
-    curl \
     wget \
     unzip \
     git \
