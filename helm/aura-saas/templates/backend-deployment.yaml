@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-backend
+  labels:
+    app: crm-backend
+spec:
+  replicas: {{ .Values.replicaCount | default .Values.backend.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: crm-backend
+  template:
+    metadata:
+      labels:
+        app: crm-backend
+    spec:
+      containers:
+      - name: backend
+        image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"
+        imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+        env:
+        - name: DB_HOST
+          value: {{ .Values.db.host | quote }}
+        - name: DB_USER
+          value: {{ .Values.db.username | quote }}
+        - name: DB_PASSWORD
+          value: {{ .Values.db.password | quote }}
+        - name: DB_NAME
+          value: {{ .Values.db.name | quote }}
+        - name: JWT_SECRET
+          value: {{ .Values.jwtSecret | quote }}
+        ports:
+        - containerPort: 3001
+        resources:
+          {{- toYaml .Values.backend.resources | nindent 10 }}
