@@ -1,127 +1,23 @@
-name: "Deploy DEV"
+name: "Reusable Deploy Environment"
 
 on:
-  push:
-    branches: [dev]
-  workflow_dispatch:
+  workflow_call:
     inputs:
-      destroy:
-        description: "Type DESTROY to tear down all AWS infrastructure"
-        required: false
-        default: ""
-
-concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: false
+      environment:
+        description: "Environment to deploy to (dev, staging, prod)"
+        required: true
+        type: string
+      image_tag:
+        description: "Docker image tag to deploy"
+        required: true
+        type: string
 
 jobs:
   # ===========================================================================
-  # STAGE 1: CI & SECURITY CHECKS
-  # ===========================================================================
-  python-ci:
-    name: "Python CI (Backend)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt flake8
-          flake8 assignment.py --count --select=E9,F63,F7,F82 --show-source --statistics
-          python -c "import py_compile; py_compile.compile('assignment.py')"
-
-  node-ci:
-    name: "Node.js CI (Backend)"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - working-directory: server
-        run: |
-          npm ci
-          npm audit --audit-level=high || true
-          node --check index.js
-
-  frontend-ci:
-    name: "Frontend CI"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          if ! grep -q 'login-view' index.html; then echo "Missing login view"; exit 1; fi
-          if ! grep -q 'Authorization' index.html; then echo "Missing Authorization header"; exit 1; fi
-
-  terraform-ci:
-    name: "Terraform CI"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.7.0"
-      - working-directory: terraform
-        run: |
-          terraform fmt -check
-          terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform validate
-          terraform workspace select dev || terraform workspace new dev
-          terraform plan -var-file="environments/dev.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}"
-
-  # ===========================================================================
-  # STAGE 2: BUILD & PUSH DOCKER IMAGES
-  # ===========================================================================
-  build-push:
-    needs: [python-ci, node-ci, frontend-ci, terraform-ci]
-    name: "🐳 Build & Push Images"
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      image_tag: ${{ steps.tag.outputs.tag }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: tag
-        run: echo "tag=$(echo $GITHUB_SHA | head -c 7)" >> $GITHUB_OUTPUT
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build & Push Backend
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.backend
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/crm-backend:${{ steps.tag.outputs.tag }}
-            ghcr.io/${{ github.repository }}/crm-backend:latest
-      - name: Build & Push Frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: docker/Dockerfile.frontend
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}/crm-frontend:${{ steps.tag.outputs.tag }}
-            ghcr.io/${{ github.repository }}/crm-frontend:latest
-
-  # ===========================================================================
-  # STAGE 3: PROVISION INFRASTRUCTURE
+  # STAGE 1: PROVISION INFRASTRUCTURE
   # ===========================================================================
   provision:
-    needs: build-push
-    name: "☁️ Provision AWS Infra"
+    name: "☁️ Provision AWS Infra (${{ inputs.environment }})"
     runs-on: ubuntu-latest
     outputs:
       ec2_public_ip: ${{ steps.tf.outputs.ec2_public_ip }}
@@ -153,20 +49,15 @@ jobs:
           fi
           
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select dev || terraform workspace new dev
+          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
 
-          if [ "${{ github.event.inputs.destroy }}" = "DESTROY" ]; then
-            terraform destroy -auto-approve -var-file="environments/dev.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}"
-            exit 0
-          fi
-
-          terraform apply -auto-approve -var-file="environments/dev.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}"
+          terraform apply -auto-approve -var-file="environments/${{ inputs.environment }}.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}"
 
       - id: tf
         working-directory: terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select dev > /dev/null 2>&1 || true
+          terraform workspace select ${{ inputs.environment }} > /dev/null 2>&1 || true
           
           echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
           echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
@@ -179,21 +70,29 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           
           EC2_IP=$(terraform output -raw ec2_public_ip)
+          BOOTSTRAP_SUCCESS=false
           for i in $(seq 1 20); do
             if ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@"$EC2_IP" "test -f ~/bootstrap_done.txt && echo ready" 2>/dev/null | grep -q ready; then
               echo ">>> EC2 bootstrap complete!"
+              BOOTSTRAP_SUCCESS=true
               break
             fi
             sleep 30
           done
+          
+          if [ "$BOOTSTRAP_SUCCESS" = "false" ]; then
+            echo "❌ ERROR: EC2 bootstrap timed out or failed!"
+            echo ">>> Fetching cloud-init logs for debugging..."
+            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "sudo cat /var/log/cloud-init-output.log" || true
+            exit 1
+          fi
 
   # ===========================================================================
-  # STAGE 4: INITIALIZE DATABASE
+  # STAGE 2: INITIALIZE DATABASE
   # ===========================================================================
   db-init:
     needs: provision
-    if: github.event.inputs.destroy != 'DESTROY'
-    name: "🗄️ Init DB Schemas"
+    name: "🗄️ Init DB Schemas (${{ inputs.environment }})"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -209,7 +108,7 @@ jobs:
       - working-directory: terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select dev > /dev/null 2>&1 || true
+          terraform workspace select ${{ inputs.environment }} > /dev/null 2>&1 || true
           
           DB_PASSWORD=$(terraform output -raw db_password)
           SSH_KEY=$(terraform output -raw ssh_private_key)
@@ -239,12 +138,11 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/run_db_init.sh"
 
   # ===========================================================================
-  # STAGE 5: HELM DEPLOY
+  # STAGE 3: HELM DEPLOY
   # ===========================================================================
   helm-deploy:
-    needs: [provision, build-push, db-init]
-    if: github.event.inputs.destroy != 'DESTROY'
-    name: "🚀 Helm Deploy"
+    needs: [provision, db-init]
+    name: "🚀 Helm Deploy (${{ inputs.environment }})"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -260,7 +158,7 @@ jobs:
       - working-directory: terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select dev > /dev/null 2>&1 || true
+          terraform workspace select ${{ inputs.environment }} > /dev/null 2>&1 || true
           
           DB_PASSWORD=$(terraform output -raw db_password)
           JWT_SECRET=$(terraform output -raw jwt_secret)
@@ -280,7 +178,7 @@ jobs:
           RDS_ENDPOINT="${{ needs.provision.outputs.rds_endpoint }}"
           DB_NAME="${{ needs.provision.outputs.db_name }}"
           DB_USER="${{ needs.provision.outputs.db_username }}"
-          IMAGE_TAG="${{ needs.build-push.outputs.image_tag }}"
+          IMAGE_TAG="${{ inputs.image_tag }}"
           REPO="ghcr.io/${{ github.repository }}"
           
           ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
@@ -289,21 +187,35 @@ jobs:
           cat << 'EOF' > deploy.sh
           set -e
           export KUBECONFIG=/home/ec2-user/.kube/config
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          helm upgrade --install aura-saas ~/helm/aura-saas             --namespace crm-dev             -f ~/helm/aura-saas/values.dev.yaml             --create-namespace             --set backend.image.repository="${REPO}/crm-backend"             --set backend.image.tag="${IMAGE_TAG}"             --set frontend.image.repository="${REPO}/crm-frontend"             --set frontend.image.tag="${IMAGE_TAG}"             --set db.host="${RDS_ENDPOINT}"             --set db.name="${DB_NAME}"             --set db.username="${DB_USER}"             --set db.password="${DB_PASSWORD}"             --set jwtSecret="${JWT_SECRET}"             --set ingress.host="${EC2_IP}"             --wait --timeout 8m
-          kubectl get pods -n crm-dev
+          # We do not strictly need docker login if images are public, but keeping it
+          # To avoid errors if the image is public, we can just echo skip if no token
+          helm upgrade --install aura-saas ~/helm/aura-saas \
+            --namespace crm-${{ inputs.environment }} \
+            -f ~/helm/aura-saas/values.yaml \
+            --create-namespace \
+            --set backend.image.repository="${REPO}/crm-backend" \
+            --set backend.image.tag="${IMAGE_TAG}" \
+            --set frontend.image.repository="${REPO}/crm-frontend" \
+            --set frontend.image.tag="${IMAGE_TAG}" \
+            --set db.host="${RDS_ENDPOINT}" \
+            --set db.name="${DB_NAME}" \
+            --set db.username="${DB_USER}" \
+            --set db.password="${DB_PASSWORD}" \
+            --set jwtSecret="${JWT_SECRET}" \
+            --set ingress.host="${EC2_IP}" \
+            --wait --timeout 8m
+          kubectl get pods -n crm-${{ inputs.environment }}
           EOF
           
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.sh ec2-user@"$EC2_IP":~/deploy.sh
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/deploy.sh"
 
   # ===========================================================================
-  # STAGE 6: MONITOR
+  # STAGE 4: MONITOR
   # ===========================================================================
   monitor:
     needs: [helm-deploy, provision]
-    if: github.event.inputs.destroy != 'DESTROY'
-    name: "🔍 Monitor Health"
+    name: "🔍 Monitor Health (${{ inputs.environment }})"
     runs-on: ubuntu-latest
     steps:
       - run: |

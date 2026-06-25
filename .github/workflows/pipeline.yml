@@ -1,0 +1,129 @@
+name: "CI/CD Pipeline"
+
+on:
+  push:
+    branches:
+      - '**'
+
+concurrency:
+  group: pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  python-ci:
+    name: "Python CI"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt flake8
+          flake8 assignment.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          python -c "import py_compile; py_compile.compile('assignment.py')"
+
+  node-ci:
+    name: "Node.js CI"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - working-directory: server
+        run: |
+          npm ci
+          npm audit --audit-level=high || true
+          node --check index.js
+
+  frontend-ci:
+    name: "Frontend CI"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          if ! grep -q 'login-view' index.html; then echo "Missing login view"; exit 1; fi
+          if ! grep -q 'Authorization' index.html; then echo "Missing Authorization header"; exit 1; fi
+
+  terraform-ci:
+    name: "Terraform CI"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.0"
+      - working-directory: terraform
+        run: |
+          terraform fmt -check
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
+          terraform validate
+
+  build-push:
+    needs: [python-ci, node-ci, frontend-ci, terraform-ci]
+    name: "🐳 Build & Push Images"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: tag
+        run: echo "tag=$(echo $GITHUB_SHA | head -c 7)" >> $GITHUB_OUTPUT
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.backend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/crm-backend:${{ steps.tag.outputs.tag }}
+            ghcr.io/${{ github.repository }}/crm-backend:latest
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.frontend
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/crm-frontend:${{ steps.tag.outputs.tag }}
+            ghcr.io/${{ github.repository }}/crm-frontend:latest
+
+  deploy-dev:
+    needs: build-push
+    uses: ./.github/workflows/deploy-env-template.yml
+    with:
+      environment: dev
+      image_tag: ${{ needs.build-push.outputs.image_tag }}
+    secrets: inherit
+
+  deploy-staging:
+    needs: deploy-dev
+    uses: ./.github/workflows/deploy-env-template.yml
+    with:
+      environment: staging
+      image_tag: ${{ needs.build-push.outputs.image_tag }}
+    secrets: inherit
+
+  deploy-prod:
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-env-template.yml
+    with:
+      environment: prod
+      image_tag: ${{ needs.build-push.outputs.image_tag }}
+    secrets: inherit
