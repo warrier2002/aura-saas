@@ -113,7 +113,7 @@ jobs:
     secrets: inherit
 
   deploy-staging:
-    needs: deploy-dev
+    needs: [deploy-dev, build-push]
     uses: ./.github/workflows/deploy-env-template.yml
     with:
       environment: staging
@@ -121,7 +121,7 @@ jobs:
     secrets: inherit
 
   deploy-prod:
-    needs: deploy-staging
+    needs: [deploy-staging, build-push]
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/deploy-env-template.yml
     with:
