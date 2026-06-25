@@ -1,0 +1,297 @@
+﻿2026-06-25T20:40:14.6511000Z Current runner version: '2.335.1'
+2026-06-25T20:40:14.6536753Z ##[group]Runner Image Provisioner
+2026-06-25T20:40:14.6537931Z Hosted Compute Agent
+2026-06-25T20:40:14.6538654Z Version: 20260611.554
+2026-06-25T20:40:14.6539334Z Commit: 5e0782fdc9014723d3be820dd114dd31555c2bd1
+2026-06-25T20:40:14.6540255Z Build Date: 2026-06-11T21:40:46Z
+2026-06-25T20:40:14.6541069Z Worker ID: {11a8cea7-3689-4747-8d4e-1ef2e631b53a}
+2026-06-25T20:40:14.6542253Z Azure Region: centralus
+2026-06-25T20:40:14.6543003Z ##[endgroup]
+2026-06-25T20:40:14.6544468Z ##[group]Operating System
+2026-06-25T20:40:14.6545197Z Ubuntu
+2026-06-25T20:40:14.6545791Z 24.04.4
+2026-06-25T20:40:14.6546416Z LTS
+2026-06-25T20:40:14.6547050Z ##[endgroup]
+2026-06-25T20:40:14.6547669Z ##[group]Runner Image
+2026-06-25T20:40:14.6548351Z Image: ubuntu-24.04
+2026-06-25T20:40:14.6549066Z Version: 20260622.220.1
+2026-06-25T20:40:14.6550799Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260622.220/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-25T20:40:14.6552757Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260622.220
+2026-06-25T20:40:14.6553846Z ##[endgroup]
+2026-06-25T20:40:14.6555175Z ##[group]GITHUB_TOKEN Permissions
+2026-06-25T20:40:14.6557476Z Contents: read
+2026-06-25T20:40:14.6558218Z Metadata: read
+2026-06-25T20:40:14.6558893Z Packages: read
+2026-06-25T20:40:14.6559609Z ##[endgroup]
+2026-06-25T20:40:14.6561964Z Secret source: Actions
+2026-06-25T20:40:14.6563053Z Prepare workflow directory
+2026-06-25T20:40:14.6943038Z Prepare all required actions
+2026-06-25T20:40:14.6980925Z Getting action download info
+2026-06-25T20:40:15.3266369Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-06-25T20:40:15.3975874Z Download action repository 'aws-actions/configure-aws-credentials@v4' (SHA:7474bc4690e29a8392af63c5b98e7449536d5c3a)
+2026-06-25T20:40:15.7758206Z Download action repository 'hashicorp/setup-terraform@v3' (SHA:b9cd54a3c349d3f38e8881555d616ced269862dd)
+2026-06-25T20:40:16.3147821Z Uses: warrier2002/aura-saas/.github/workflows/deploy-env-template.yml@refs/heads/main (b6a80180131b9d41ee4fdff62c295bc4cc670b58)
+2026-06-25T20:40:16.3153853Z ##[group] Inputs
+2026-06-25T20:40:16.3154957Z   environment: dev
+2026-06-25T20:40:16.3155988Z   image_tag: b6a8018
+2026-06-25T20:40:16.3157031Z ##[endgroup]
+2026-06-25T20:40:16.3158285Z Complete job name: deploy-dev / 🗄️ Init DB Schemas (dev)
+2026-06-25T20:40:16.3975042Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T20:40:16.3985978Z ##[group]Run actions/checkout@v4
+2026-06-25T20:40:16.3987306Z with:
+2026-06-25T20:40:16.3988286Z   repository: warrier2002/aura-saas
+2026-06-25T20:40:16.3998694Z   token: ***
+2026-06-25T20:40:16.3999666Z   ssh-strict: true
+2026-06-25T20:40:16.4000714Z   ssh-user: git
+2026-06-25T20:40:16.4001839Z   persist-credentials: true
+2026-06-25T20:40:16.4002924Z   clean: true
+2026-06-25T20:40:16.4003931Z   sparse-checkout-cone-mode: true
+2026-06-25T20:40:16.4005119Z   fetch-depth: 1
+2026-06-25T20:40:16.4006101Z   fetch-tags: false
+2026-06-25T20:40:16.4007111Z   show-progress: true
+2026-06-25T20:40:16.4008125Z   lfs: false
+2026-06-25T20:40:16.4009110Z   submodules: false
+2026-06-25T20:40:16.4010122Z   set-safe-directory: true
+2026-06-25T20:40:16.4011611Z ##[endgroup]
+2026-06-25T20:40:16.5005091Z Syncing repository: warrier2002/aura-saas
+2026-06-25T20:40:16.5007949Z ##[group]Getting Git version info
+2026-06-25T20:40:16.5009459Z Working directory is '/home/runner/work/aura-saas/aura-saas'
+2026-06-25T20:40:16.5012047Z [command]/usr/bin/git version
+2026-06-25T20:40:16.5051905Z git version 2.54.0
+2026-06-25T20:40:16.5104396Z ##[endgroup]
+2026-06-25T20:40:16.5118041Z Temporarily overriding HOME='/home/runner/work/_temp/ff9aff89-f0d9-4098-b24a-1c6630088f32' before making global git config changes
+2026-06-25T20:40:16.5122146Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-25T20:40:16.5124747Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aura-saas/aura-saas
+2026-06-25T20:40:16.5170705Z Deleting the contents of '/home/runner/work/aura-saas/aura-saas'
+2026-06-25T20:40:16.5175230Z ##[group]Initializing the repository
+2026-06-25T20:40:16.5179029Z [command]/usr/bin/git init /home/runner/work/aura-saas/aura-saas
+2026-06-25T20:40:16.5282118Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-06-25T20:40:16.5284298Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-06-25T20:40:16.5286884Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-06-25T20:40:16.5289311Z hint: call:
+2026-06-25T20:40:16.5290864Z hint:
+2026-06-25T20:40:16.5292775Z hint: 	git config --global init.defaultBranch <name>
+2026-06-25T20:40:16.5294863Z hint:
+2026-06-25T20:40:16.5296754Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-06-25T20:40:16.5299864Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-06-25T20:40:16.5302461Z hint:
+2026-06-25T20:40:16.5303785Z hint: 	git branch -m <name>
+2026-06-25T20:40:16.5305515Z hint:
+2026-06-25T20:40:16.5306944Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-06-25T20:40:16.5309152Z Initialized empty Git repository in /home/runner/work/aura-saas/aura-saas/.git/
+2026-06-25T20:40:16.5313730Z [command]/usr/bin/git remote add origin https://github.com/warrier2002/aura-saas
+2026-06-25T20:40:16.5345942Z ##[endgroup]
+2026-06-25T20:40:16.5348433Z ##[group]Disabling automatic garbage collection
+2026-06-25T20:40:16.5350680Z [command]/usr/bin/git config --local gc.auto 0
+2026-06-25T20:40:16.5381127Z ##[endgroup]
+2026-06-25T20:40:16.5384200Z ##[group]Setting up auth
+2026-06-25T20:40:16.5387683Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-25T20:40:16.5425091Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-25T20:40:16.5771532Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-25T20:40:16.5805298Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-25T20:40:16.6035831Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-25T20:40:16.6070450Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-25T20:40:16.6307609Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-06-25T20:40:16.6342156Z ##[endgroup]
+2026-06-25T20:40:16.6343745Z ##[group]Fetching the repository
+2026-06-25T20:40:16.6351854Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b6a80180131b9d41ee4fdff62c295bc4cc670b58:refs/remotes/origin/main
+2026-06-25T20:40:17.1169319Z From https://github.com/warrier2002/aura-saas
+2026-06-25T20:40:17.1172298Z  * [new ref]         b6a80180131b9d41ee4fdff62c295bc4cc670b58 -> origin/main
+2026-06-25T20:40:17.1203874Z ##[endgroup]
+2026-06-25T20:40:17.1205713Z ##[group]Determining the checkout info
+2026-06-25T20:40:17.1207435Z ##[endgroup]
+2026-06-25T20:40:17.1211570Z [command]/usr/bin/git sparse-checkout disable
+2026-06-25T20:40:17.1257401Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-06-25T20:40:17.1284684Z ##[group]Checking out the ref
+2026-06-25T20:40:17.1287504Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-06-25T20:40:17.1476503Z Switched to a new branch 'main'
+2026-06-25T20:40:17.1479304Z branch 'main' set up to track 'origin/main'.
+2026-06-25T20:40:17.1486671Z ##[endgroup]
+2026-06-25T20:40:17.1526847Z [command]/usr/bin/git log -1 --format=%H
+2026-06-25T20:40:17.1550756Z b6a80180131b9d41ee4fdff62c295bc4cc670b58
+2026-06-25T20:40:17.1989458Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T20:40:17.1994543Z ##[group]Run aws-actions/configure-aws-credentials@v4
+2026-06-25T20:40:17.1995772Z with:
+2026-06-25T20:40:17.1996874Z   aws-access-key-id: ***
+2026-06-25T20:40:17.1998235Z   aws-secret-access-key: ***
+2026-06-25T20:40:17.1999304Z   aws-region: ***
+2026-06-25T20:40:17.2000242Z   audience: sts.amazonaws.com
+2026-06-25T20:40:17.2001564Z   output-env-credentials: true
+2026-06-25T20:40:17.2002619Z ##[endgroup]
+2026-06-25T20:40:18.0774682Z Proceeding with IAM user credentials
+2026-06-25T20:40:18.0907537Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T20:40:18.0908885Z ##[group]Run hashicorp/setup-terraform@v3
+2026-06-25T20:40:18.0909232Z with:
+2026-06-25T20:40:18.0909507Z   terraform_version: 1.7.0
+2026-06-25T20:40:18.0909830Z   terraform_wrapper: false
+2026-06-25T20:40:18.0910178Z   cli_config_credentials_hostname: app.terraform.io
+2026-06-25T20:40:18.0910559Z env:
+2026-06-25T20:40:18.0911067Z   AWS_DEFAULT_REGION: ***
+2026-06-25T20:40:18.0911625Z   AWS_REGION: ***
+2026-06-25T20:40:18.0911941Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T20:40:18.0912374Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T20:40:18.0912683Z ##[endgroup]
+2026-06-25T20:40:18.2255679Z (node:2379) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-06-25T20:40:18.2256900Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-06-25T20:40:18.5696331Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/06e947e4-4247-4b72-a589-92e2db0536b2
+2026-06-25T20:40:19.1896480Z ##[group]Run terraform init -backend-config="region=***"
+2026-06-25T20:40:19.1897060Z [36;1mterraform init -backend-config="region=***"[0m
+2026-06-25T20:40:19.1897530Z [36;1mterraform workspace select default > /dev/null 2>&1 || true[0m
+2026-06-25T20:40:19.1897933Z [36;1m[0m
+2026-06-25T20:40:19.1898229Z [36;1mDB_PASSWORD=$(terraform output -raw db_password)[0m
+2026-06-25T20:40:19.1898667Z [36;1mSSH_KEY=$(terraform output -raw ssh_private_key)[0m
+2026-06-25T20:40:19.1899015Z [36;1m[0m
+2026-06-25T20:40:19.1899253Z [36;1mecho "::add-mask::$DB_PASSWORD"[0m
+2026-06-25T20:40:19.1899604Z [36;1mecho "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV[0m
+2026-06-25T20:40:19.1899936Z [36;1m[0m
+2026-06-25T20:40:19.1900221Z [36;1mRDS_ENDPOINT=$(terraform output -raw rds_endpoint)[0m
+2026-06-25T20:40:19.1900624Z [36;1mecho "RDS_ENDPOINT=$RDS_ENDPOINT" >> $GITHUB_ENV[0m
+2026-06-25T20:40:19.1900967Z [36;1m[0m
+2026-06-25T20:40:19.1901198Z [36;1mmkdir -p ~/.ssh[0m
+2026-06-25T20:40:19.1901818Z [36;1mecho "$SSH_KEY" > ~/.ssh/deploy_key[0m
+2026-06-25T20:40:19.1902138Z [36;1mchmod 600 ~/.ssh/deploy_key[0m
+2026-06-25T20:40:19.2063690Z shell: /usr/bin/bash -e {0}
+2026-06-25T20:40:19.2064009Z env:
+2026-06-25T20:40:19.2064323Z   AWS_DEFAULT_REGION: ***
+2026-06-25T20:40:19.2064632Z   AWS_REGION: ***
+2026-06-25T20:40:19.2064901Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T20:40:19.2065264Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T20:40:19.2065536Z ##[endgroup]
+2026-06-25T20:40:19.2391203Z 
+2026-06-25T20:40:19.2392239Z [0m[1mInitializing the backend...[0m
+2026-06-25T20:40:21.2549697Z [0m[32m
+2026-06-25T20:40:21.2550597Z Successfully configured the backend "s3"! Terraform will automatically
+2026-06-25T20:40:21.2551815Z use this backend unless the backend configuration changes.[0m
+2026-06-25T20:40:22.2566048Z 
+2026-06-25T20:40:22.2567020Z [0m[1mInitializing provider plugins...[0m
+2026-06-25T20:40:22.2567644Z - Finding hashicorp/random versions matching "~> 3.5"...
+2026-06-25T20:40:22.3660800Z - Finding hashicorp/aws versions matching "~> 5.0"...
+2026-06-25T20:40:22.4263417Z - Finding hashicorp/tls versions matching "~> 4.0"...
+2026-06-25T20:40:22.6112894Z - Installing hashicorp/random v3.9.0...
+2026-06-25T20:40:22.9627713Z - Installed hashicorp/random v3.9.0 (signed by HashiCorp)
+2026-06-25T20:40:23.1075453Z - Installing hashicorp/aws v5.100.0...
+2026-06-25T20:40:27.1898358Z - Installed hashicorp/aws v5.100.0 (signed by HashiCorp)
+2026-06-25T20:40:27.3549172Z - Installing hashicorp/tls v4.3.0...
+2026-06-25T20:40:27.6925426Z - Installed hashicorp/tls v4.3.0 (signed by HashiCorp)
+2026-06-25T20:40:27.6925885Z 
+2026-06-25T20:40:27.6926622Z Terraform has created a lock file [1m.terraform.lock.hcl[0m to record the provider
+2026-06-25T20:40:27.6927485Z selections it made above. Include this file in your version control repository
+2026-06-25T20:40:27.6928177Z so that Terraform can guarantee to make the same selections by default when
+2026-06-25T20:40:27.6928729Z you run "terraform init" in the future.[0m
+2026-06-25T20:40:27.6928995Z 
+2026-06-25T20:40:27.6929297Z [0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+2026-06-25T20:40:27.6929701Z [0m[32m
+2026-06-25T20:40:27.6930052Z You may now begin working with Terraform. Try running "terraform plan" to see
+2026-06-25T20:40:27.6930565Z any changes that are required for your infrastructure. All Terraform commands
+2026-06-25T20:40:27.6930958Z should now work.
+2026-06-25T20:40:27.6931099Z 
+2026-06-25T20:40:27.6931610Z If you ever set or change modules or backend configuration for Terraform,
+2026-06-25T20:40:27.6932367Z rerun this command to reinitialize your working directory. If you forget, other
+2026-06-25T20:40:27.6933121Z commands will detect it and remind you to do so if necessary.[0m
+2026-06-25T20:40:40.1977200Z ##[group]Run EC2_IP="43.205.232.26"
+2026-06-25T20:40:40.1977561Z [36;1mEC2_IP="43.205.232.26"[0m
+2026-06-25T20:40:40.1977843Z [36;1mDB_USER="crm_app_user"[0m
+2026-06-25T20:40:40.1978123Z [36;1mENV_DB_NAME="crm_db_dev"[0m
+2026-06-25T20:40:40.1978391Z [36;1m[0m
+2026-06-25T20:40:40.1978742Z [36;1mssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true[0m
+2026-06-25T20:40:40.1979400Z [36;1mscp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no scripts/db_init.sql ec2-user@"$EC2_IP":~/db_init.sql[0m
+2026-06-25T20:40:40.1979947Z [36;1m[0m
+2026-06-25T20:40:40.1980197Z [36;1mcat << EOF > run_db_init.sh[0m
+2026-06-25T20:40:40.1980527Z [36;1mexport PGPASSWORD="${DB_PASSWORD}"[0m
+2026-06-25T20:40:40.1980895Z [36;1m# Create database if it doesn't exist[0m
+2026-06-25T20:40:40.1981920Z [36;1mdocker run --rm -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d postgres -c "CREATE DATABASE \${ENV_DB_NAME};" || true[0m
+2026-06-25T20:40:40.1982631Z [36;1m[0m
+2026-06-25T20:40:40.1982871Z [36;1m# Initialize schema[0m
+2026-06-25T20:40:40.1983576Z [36;1mdocker run --rm -v ~/db_init.sql:/db_init.sql -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "\${ENV_DB_NAME}" -f /db_init.sql[0m
+2026-06-25T20:40:40.1984246Z [36;1mEOF[0m
+2026-06-25T20:40:40.1984467Z [36;1m[0m
+2026-06-25T20:40:40.1984915Z [36;1mscp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no run_db_init.sh ec2-user@"$EC2_IP":~/run_db_init.sh[0m
+2026-06-25T20:40:40.1985695Z [36;1mssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ec2-user@"$EC2_IP" "bash ~/run_db_init.sh"[0m
+2026-06-25T20:40:40.2018730Z shell: /usr/bin/bash -e {0}
+2026-06-25T20:40:40.2019015Z env:
+2026-06-25T20:40:40.2019334Z   AWS_DEFAULT_REGION: ***
+2026-06-25T20:40:40.2019640Z   AWS_REGION: ***
+2026-06-25T20:40:40.2019912Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T20:40:40.2020299Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T20:40:40.2020600Z   DB_PASSWORD: ***
+2026-06-25T20:40:40.2021017Z   RDS_ENDPOINT: aura-saas-shared-db.cf2y8w206pcs.***.rds.amazonaws.com
+2026-06-25T20:40:40.2021701Z ##[endgroup]
+2026-06-25T20:40:55.2023823Z Unable to find image 'postgres:15-alpine' locally
+2026-06-25T20:40:57.6240422Z 15-alpine: Pulling from library/postgres
+2026-06-25T20:40:58.2574425Z 55afa1ecc21d: Pulling fs layer
+2026-06-25T20:40:58.2575731Z 7bc76471c3c7: Pulling fs layer
+2026-06-25T20:40:58.2595114Z 9a5bf1ac6163: Pulling fs layer
+2026-06-25T20:40:58.2595973Z 853349fea82d: Pulling fs layer
+2026-06-25T20:40:58.2596806Z 3d5e85922300: Pulling fs layer
+2026-06-25T20:40:58.4763920Z 4608fab9e712: Pulling fs layer
+2026-06-25T20:40:58.4764414Z 22e56b5bebbf: Pulling fs layer
+2026-06-25T20:40:58.4764872Z 50e97e707df1: Pulling fs layer
+2026-06-25T20:40:58.4765208Z c6efd2a4e3d4: Pulling fs layer
+2026-06-25T20:40:58.4765501Z f2e385447d2c: Pulling fs layer
+2026-06-25T20:40:58.4765775Z e3a354ba7f6e: Pulling fs layer
+2026-06-25T20:40:58.4766047Z 853349fea82d: Waiting
+2026-06-25T20:40:58.4766293Z 3d5e85922300: Waiting
+2026-06-25T20:40:58.4766527Z 4608fab9e712: Waiting
+2026-06-25T20:40:58.4766752Z 22e56b5bebbf: Waiting
+2026-06-25T20:40:58.4766971Z 50e97e707df1: Waiting
+2026-06-25T20:40:58.4767200Z c6efd2a4e3d4: Waiting
+2026-06-25T20:40:58.4767697Z f2e385447d2c: Waiting
+2026-06-25T20:40:58.4767915Z e3a354ba7f6e: Waiting
+2026-06-25T20:40:58.8332333Z 7bc76471c3c7: Verifying Checksum
+2026-06-25T20:40:58.8332765Z 7bc76471c3c7: Download complete
+2026-06-25T20:40:58.8629484Z 55afa1ecc21d: Download complete
+2026-06-25T20:40:58.8988620Z 9a5bf1ac6163: Verifying Checksum
+2026-06-25T20:40:58.8989064Z 9a5bf1ac6163: Download complete
+2026-06-25T20:40:59.0428062Z 55afa1ecc21d: Pull complete
+2026-06-25T20:40:59.0666074Z 7bc76471c3c7: Pull complete
+2026-06-25T20:40:59.1139309Z 9a5bf1ac6163: Pull complete
+2026-06-25T20:40:59.4003433Z 853349fea82d: Verifying Checksum
+2026-06-25T20:40:59.4003955Z 853349fea82d: Download complete
+2026-06-25T20:40:59.4195663Z 853349fea82d: Pull complete
+2026-06-25T20:40:59.4772674Z 3d5e85922300: Verifying Checksum
+2026-06-25T20:40:59.4773034Z 3d5e85922300: Download complete
+2026-06-25T20:40:59.4994628Z 3d5e85922300: Pull complete
+2026-06-25T20:40:59.9732964Z 22e56b5bebbf: Verifying Checksum
+2026-06-25T20:40:59.9733367Z 22e56b5bebbf: Download complete
+2026-06-25T20:41:00.0482388Z 50e97e707df1: Verifying Checksum
+2026-06-25T20:41:00.0482766Z 50e97e707df1: Download complete
+2026-06-25T20:41:00.5479046Z c6efd2a4e3d4: Verifying Checksum
+2026-06-25T20:41:00.5479443Z c6efd2a4e3d4: Download complete
+2026-06-25T20:41:00.6195022Z f2e385447d2c: Verifying Checksum
+2026-06-25T20:41:00.6195411Z f2e385447d2c: Download complete
+2026-06-25T20:41:01.1186173Z e3a354ba7f6e: Verifying Checksum
+2026-06-25T20:41:01.1186606Z e3a354ba7f6e: Download complete
+2026-06-25T20:41:02.0535527Z 4608fab9e712: Verifying Checksum
+2026-06-25T20:41:02.0535986Z 4608fab9e712: Download complete
+2026-06-25T20:41:05.7985736Z 4608fab9e712: Pull complete
+2026-06-25T20:41:05.8270590Z 22e56b5bebbf: Pull complete
+2026-06-25T20:41:05.8619679Z 50e97e707df1: Pull complete
+2026-06-25T20:41:05.8848624Z c6efd2a4e3d4: Pull complete
+2026-06-25T20:41:05.9086617Z f2e385447d2c: Pull complete
+2026-06-25T20:41:05.9317113Z e3a354ba7f6e: Pull complete
+2026-06-25T20:41:05.9620524Z Digest: sha256:cd17e2ac98240fce1541ad2a803b34009b4eea5aec8a832363cdc7eca62e722e
+2026-06-25T20:41:05.9680425Z Status: Downloaded newer image for postgres:15-alpine
+2026-06-25T20:41:07.0764207Z ERROR:  syntax error at or near ";"
+2026-06-25T20:41:07.0764613Z LINE 1: CREATE DATABASE ;
+2026-06-25T20:41:07.0764884Z                         ^
+2026-06-25T20:41:07.7367302Z psql: error: connection to server at "aura-saas-shared-db.cf2y8w206pcs.***.rds.amazonaws.com" (10.0.3.208), port 5432 failed: FATAL:  database "crm_app_user" does not exist
+2026-06-25T20:41:07.9979818Z ##[error]Process completed with exit code 2.
+2026-06-25T20:41:08.0108595Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T20:41:08.0109827Z Post job cleanup.
+2026-06-25T20:41:08.1216001Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T20:41:08.1217195Z Post job cleanup.
+2026-06-25T20:41:08.2047643Z [command]/usr/bin/git version
+2026-06-25T20:41:08.2085285Z git version 2.54.0
+2026-06-25T20:41:08.2119872Z Temporarily overriding HOME='/home/runner/work/_temp/ecf42da0-7827-46db-805e-bb080ea62377' before making global git config changes
+2026-06-25T20:41:08.2121156Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-25T20:41:08.2125922Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aura-saas/aura-saas
+2026-06-25T20:41:08.2161714Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-25T20:41:08.2219529Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-25T20:41:08.2452232Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-25T20:41:08.2478717Z http.https://github.com/.extraheader
+2026-06-25T20:41:08.2488837Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-06-25T20:41:08.2521251Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-25T20:41:08.2753639Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-25T20:41:08.2785654Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-25T20:41:08.3185083Z Cleaning up orphan processes
+2026-06-25T20:41:08.3453074Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, aws-actions/configure-aws-credentials@v4, hashicorp/setup-terraform@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -134,10 +134,10 @@ jobs:
           cat << EOF > run_db_init.sh
           export PGPASSWORD="${DB_PASSWORD}"
           # Create database if it doesn't exist
-          docker run --rm -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d postgres -c "CREATE DATABASE \${ENV_DB_NAME};" || true
+          docker run --rm -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d postgres -c "CREATE DATABASE ${ENV_DB_NAME};" || true
           
           # Initialize schema
-          docker run --rm -v ~/db_init.sql:/db_init.sql -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "\${ENV_DB_NAME}" -f /db_init.sql
+          docker run --rm -v ~/db_init.sql:/db_init.sql -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "${ENV_DB_NAME}" -f /db_init.sql
           EOF
           
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no run_db_init.sh ec2-user@"$EC2_IP":~/run_db_init.sh
@@ -193,6 +193,15 @@ jobs:
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "mkdir -p ~/helm"
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r helm/aura-saas ec2-user@"$EC2_IP":~/helm/
           
+          # Determine replica counts and HPA based on environment
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            REPLICAS=2
+            AUTOSCALING="true"
+          else
+            REPLICAS=1
+            AUTOSCALING="false"
+          fi
+          
           cat << EOF > deploy.sh
           set -e
           export KUBECONFIG=/home/ec2-user/.kube/config
@@ -205,11 +214,14 @@ jobs:
             --set frontend.image.repository="${REPO}/crm-frontend" \\
             --set frontend.image.tag="${IMAGE_TAG}" \\
             --set db.host="${RDS_ENDPOINT}" \\
-            --set db.name="\${ENV_DB_NAME}" \\
+            --set db.name="${ENV_DB_NAME}" \\
             --set db.username="${DB_USER}" \\
             --set db.password="${DB_PASSWORD}" \\
             --set jwtSecret="${JWT_SECRET}" \\
             --set ingress.host="${{ inputs.environment }}.${EC2_IP}.nip.io" \\
+            --set backend.replicas="${REPLICAS}" \\
+            --set frontend.replicas="${REPLICAS}" \\
+            --set autoscaling.enabled="${AUTOSCALING}" \\
             --wait --timeout 8m
           kubectl get pods -n crm-${{ inputs.environment }}
           EOF
