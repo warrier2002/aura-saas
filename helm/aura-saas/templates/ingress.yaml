@@ -1,26 +1,32 @@
+{{- $env := trimPrefix "crm-" .Release.Namespace -}}
+{{- $prefix := "" -}}
+{{- if ne $env "prod" -}}
+  {{- $prefix = printf "/%s" $env -}}
+{{- end -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: crm-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
   ingressClassName: nginx
   rules:
   - host: {{ .Values.ingress.host | quote }}
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: crm-frontend
-            port:
-              number: 80
-      - path: /api
-        pathType: Prefix
+      - path: {{ $prefix }}/api(/|$)(.*)
+        pathType: ImplementationSpecific
         backend:
           service:
             name: crm-backend
             port:
               number: 3001
+      - path: {{ $prefix }}(/|$)(.*)
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: crm-frontend
+            port:
+              number: 80

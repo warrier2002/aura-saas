@@ -218,7 +218,7 @@ jobs:
             --set db.username="${DB_USER}" \\
             --set db.password="${DB_PASSWORD}" \\
             --set jwtSecret="${JWT_SECRET}" \\
-            --set ingress.host="${{ inputs.environment }}.${EC2_IP}.nip.io" \\
+            --set ingress.host="aurasaas.duckdns.org" \\
             --set backend.replicas="${REPLICAS}" \\
             --set frontend.replicas="${REPLICAS}" \\
             --set autoscaling.enabled="${AUTOSCALING}" \\
@@ -239,10 +239,15 @@ jobs:
     steps:
       - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          HOST_URL="${{ inputs.environment }}.${EC2_IP}.nip.io"
-          echo ">>> Pinging http://${HOST_URL}/"
+          HOST_URL="aurasaas.duckdns.org"
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            CHECK_PATH="/"
+          else
+            CHECK_PATH="/${{ inputs.environment }}/"
+          fi
+          echo ">>> Pinging http://${HOST_URL}${CHECK_PATH}"
           for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${HOST_URL}/" || true)
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${HOST_URL}${CHECK_PATH}" || true)
             if [ "$STATUS" = "200" ]; then
               echo "✅ Success! Received HTTP 200 OK."
               exit 0

@@ -95,12 +95,12 @@ function requireAuth(req, res, next) {
 // ─── Routes ───────────────────────────────────────────────────────────────────
 
 // Health Check Endpoint (used by Kubernetes and CI/CD)
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', service: 'Aura SaaS Backend', secured: true });
 });
 
 // POST /api/login — Verify credentials and return JWT
-app.post('/api/login', async (req, res) => {
+app.post('/login', async (req, res) => {
   let { email, password, tenant_id } = req.body;
 
   try {
@@ -153,7 +153,7 @@ app.post('/api/login', async (req, res) => {
 
 
 // GET /api/customers — Protected. Tenant extracted from JWT.
-app.get('/api/customers', requireAuth, async (req, res) => {
+app.get('/customers', requireAuth, async (req, res) => {
   const tenant_id = req.tokenData.tenant; // SECURITY: Read tenant from JWT, never from input
 
   try {
@@ -167,7 +167,7 @@ app.get('/api/customers', requireAuth, async (req, res) => {
 
 
 // POST /api/customers — Protected. 
-app.post('/api/customers', requireAuth, async (req, res) => {
+app.post('/customers', requireAuth, async (req, res) => {
   const tenant_id = req.tokenData.tenant; 
   const { name, email, phone, company } = req.body;
 

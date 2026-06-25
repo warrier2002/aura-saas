@@ -8,16 +8,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --bg-grad-1: #0f172a;
-            --bg-grad-2: #1e1b4b;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --success: #22c55e;
-            --danger: #ef4444;
+            --primary: #E8620A;
+            --primary-hover: #CF5709;
+            --bg: #FAF8F5;
+            --bg-card: #FFFFFF;
+            --text-main: #1A1A2E;
+            --text-muted: #7A7A8C;
+            --border: #E8E4DF;
+            --border-focus: #E8620A;
+            --success: #2E7D32;
+            --success-bg: #E8F5E9;
+            --danger: #C62828;
+            --danger-bg: #FFEBEE;
+            --radius: 14px;
         }
 
         * {
@@ -28,7 +31,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2));
+            background: linear-gradient(160deg, #FAF8F5 0%, #F5F0EB 50%, #FAF8F5 100%);
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -39,196 +42,289 @@
             position: relative;
         }
 
-        /* Ambient Background Glows */
-        .glow-1, .glow-2 {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: var(--primary);
-            filter: blur(150px);
-            opacity: 0.3;
-            z-index: 0;
-            border-radius: 50%;
-        }
-        .glow-1 { top: -100px; left: -100px; }
-        .glow-2 { bottom: -100px; right: -100px; background: #c026d3; }
-
         .container {
             width: 100%;
-            max-width: 1000px;
             padding: 2rem;
-            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        /* Glassmorphism Panel */
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
+        /* Clean Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
             padding: 2.5rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.5s ease-out;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            animation: fadeIn 0.4s ease-out;
+            width: 100%;
+        }
+
+        #login-view {
+            max-width: 420px;
+        }
+
+        #dashboard {
+            max-width: 960px;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        h1, h2 {
+        h1 {
             font-weight: 700;
-            margin-bottom: 1rem;
-            background: linear-gradient(to right, #a855f7, #6366f1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 1.75rem;
+            margin-bottom: 0.25rem;
+            color: var(--primary);
+        }
+
+        h2 {
+            font-weight: 700;
+            font-size: 1.35rem;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
+        }
+
+        h3 {
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: var(--text-main);
         }
 
         p.subtitle {
             color: var(--text-muted);
             margin-bottom: 2rem;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         /* Forms & Inputs */
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
-        
+
         .form-group label {
             display: block;
-            margin-bottom: 0.5rem;
-            font-size: 0.85rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            font-weight: 600;
         }
 
         input, select {
             width: 100%;
-            padding: 0.75rem 1rem;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: white;
-            font-size: 1rem;
+            padding: 0.7rem 0.9rem;
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.3s, box-shadow 0.3s;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        input::placeholder {
+            color: #B0ADAB;
         }
 
         input:focus, select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(232, 98, 10, 0.15);
+        }
+
+        .password-policy {
+            display: block;
+            margin-top: 0.35rem;
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            line-height: 1.4;
         }
 
         button {
             width: 100%;
-            padding: 0.75rem 1.5rem;
+            padding: 0.7rem 1.5rem;
             background: var(--primary);
-            color: white;
+            color: #FFFFFF;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
+            border-radius: 10px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.25s, transform 0.15s, box-shadow 0.25s;
         }
 
         button:hover {
             background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(232, 98, 10, 0.25);
+        }
+
+        button:active {
+            transform: translateY(0);
         }
 
         /* Alert Box */
         .alert {
-            padding: 1rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.25rem;
             display: none;
-            font-size: 0.9rem;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
-        .alert.error { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); color: #fca5a5; }
-        .alert.success { background: rgba(34, 197, 94, 0.2); border: 1px solid var(--success); color: #86efac; }
+        .alert.error {
+            background: var(--danger-bg);
+            border: 1px solid #EF9A9A;
+            color: var(--danger);
+        }
+        .alert.success {
+            background: var(--success-bg);
+            border: 1px solid #A5D6A7;
+            color: var(--success);
+        }
 
         /* Dashboard Layout */
         #dashboard { display: none; }
-        
+
         .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
             padding-bottom: 1rem;
-            border-bottom: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--border);
         }
 
         .user-badge {
             display: inline-block;
-            padding: 0.25rem 0.75rem;
-            background: rgba(99, 102, 241, 0.2);
-            border: 1px solid var(--primary);
+            padding: 0.2rem 0.65rem;
+            background: rgba(232, 98, 10, 0.08);
+            border: 1px solid rgba(232, 98, 10, 0.25);
             border-radius: 99px;
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 600;
-            color: #c7d2fe;
+            color: var(--primary);
         }
 
         .btn-small {
             width: auto;
-            padding: 0.5rem 1rem;
+            padding: 0.45rem 1rem;
             background: transparent;
-            border: 1px solid var(--glass-border);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
         }
         .btn-small:hover {
-            background: rgba(255,255,255,0.1);
+            background: #F5F0EB;
+            border-color: #D5D0CB;
+            color: var(--text-main);
+            box-shadow: none;
+            transform: none;
         }
 
         /* Table */
         .table-container {
             overflow-x: auto;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
             border-radius: 12px;
-            border: 1px solid var(--glass-border);
-            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            background: var(--bg-card);
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
         }
-        
+
         th, td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--glass-border);
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border);
         }
-        
+
         th {
-            background: rgba(255,255,255,0.05);
-            font-size: 0.85rem;
+            background: #F7F5F2;
+            font-size: 0.78rem;
             text-transform: uppercase;
             color: var(--text-muted);
             letter-spacing: 0.05em;
+            font-weight: 600;
         }
-        
+
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: rgba(255,255,255,0.02); }
+        tr:hover td { background: #FDFCFB; }
 
-        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
 
+        @media (max-width: 640px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Environment Badge */
+        .env-badge {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            z-index: 100;
+        }
+        .env-badge.prod {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border: 1px solid #A5D6A7;
+        }
+        .env-badge.dev {
+            background: #FFF3E0;
+            color: #E65100;
+            border: 1px solid #FFCC80;
+        }
+        .env-badge.staging {
+            background: #E3F2FD;
+            color: #1565C0;
+            border: 1px solid #90CAF9;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 2rem;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Test hint at bottom of login */
+        .test-hint {
+            margin-top: 1.25rem;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
 
-    <div class="glow-1"></div>
-    <div class="glow-2"></div>
+    <!-- Environment Badge -->
+    <div class="env-badge" id="env-badge"></div>
 
     <div class="container">
-        
+
         <!-- LOGIN VIEW -->
-        <div id="login-view" class="glass-panel">
+        <div id="login-view" class="card">
             <center>
                 <h1>Aura SaaS</h1>
                 <p class="subtitle">Secure Multi-Tenant Cloud Platform</p>
@@ -246,21 +342,30 @@
                 </div>
                 <div class="form-group">
                     <label>Email Address</label>
-                    <input type="email" id="email" placeholder="admin@tenant-a.com" required>
+                    <input type="email" id="email" placeholder="admin@tenant-a.com" required
+                           minlength="5"
+                           maxlength="100"
+                           pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                           title="Enter a valid email address (e.g. user@example.com)">
                 </div>
                 <div class="form-group">
                     <label>Password</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
+                    <input type="password" id="password" placeholder="••••••••" required
+                           minlength="8"
+                           maxlength="64"
+                           pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}"
+                           title="Password must be at least 8 characters and include 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (!@#$%^&*)">
+                    <span class="password-policy">Min 8 chars: 1 uppercase, 1 lowercase, 1 number, 1 special (!@#$%^&*)</span>
                 </div>
                 <button type="submit">Authenticate</button>
             </form>
-            <center style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+            <center class="test-hint">
                 Test accounts: admin@tenant-a.com / admin@tenant-b.com | Password: Admin@123
             </center>
         </div>
 
         <!-- DASHBOARD VIEW -->
-        <div id="dashboard" class="glass-panel">
+        <div id="dashboard" class="card">
             <div class="dashboard-header">
                 <div>
                     <h2>Customer CRM</h2>
@@ -274,7 +379,7 @@
             <div class="two-col">
                 <!-- Add Customer Form -->
                 <div>
-                    <h3 style="margin-bottom:1rem; font-size:1.1rem; color:var(--text-main);">Add Customer</h3>
+                    <h3 style="margin-bottom:1rem;">Add Customer</h3>
                     <form id="customer-form">
                         <div class="form-group">
                             <input type="text" id="cust-name" placeholder="Full Name" required>
@@ -291,7 +396,7 @@
 
                 <!-- Customer List -->
                 <div>
-                    <h3 style="margin-bottom:1rem; font-size:1.1rem; color:var(--text-main);">Tenant Directory</h3>
+                    <h3 style="margin-bottom:1rem;">Tenant Directory</h3>
                     <div class="table-container">
                         <table>
                             <thead>
@@ -311,14 +416,32 @@
 
     </div>
 
+    <footer>&copy; 2026 Aura SaaS Platform &mdash; Secured with JWT &amp; Multi-Tenant Isolation</footer>
+
     <script>
-        const API_BASE = '/api'; // Uses relative path for Nginx ingress
-        
+        // Detect environment prefix from URL path (/dev, /staging, or / for prod)
+        const envMatch = window.location.pathname.match(/^\/(dev|staging)/);
+        const ENV_PREFIX = envMatch ? '/' + envMatch[1] : '';
+        const API_BASE = ENV_PREFIX + '/api';
+
+        // Environment badge
+        (function() {
+            const badge = document.getElementById('env-badge');
+            if (envMatch) {
+                const env = envMatch[1];
+                badge.textContent = env.charAt(0).toUpperCase() + env.slice(1);
+                badge.classList.add(env);
+            } else {
+                badge.textContent = 'Prod';
+                badge.classList.add('prod');
+            }
+        })();
+
         const loginView = document.getElementById('login-view');
         const dashboardView = document.getElementById('dashboard');
         const loginAlert = document.getElementById('login-alert');
         const dashAlert = document.getElementById('dash-alert');
-        
+
         function showAlert(element, msg, type) {
             element.textContent = msg;
             element.className = `alert ${type}`;
@@ -344,13 +467,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password, tenant_id })
                 });
-                
+
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || 'Login failed');
-                
+
                 sessionStorage.setItem('aura_token', data.token);
                 sessionStorage.setItem('aura_user', JSON.stringify(data.user));
-                
+
                 showDashboard();
             } catch (err) {
                 showAlert(loginAlert, err.message, 'error');
@@ -370,10 +493,10 @@
         async function showDashboard() {
             loginView.style.display = 'none';
             dashboardView.style.display = 'block';
-            
+
             const user = JSON.parse(sessionStorage.getItem('aura_user'));
             document.getElementById('user-info').textContent = `${user.name} (${user.tenant_id.replace('_', ' ').toUpperCase()})`;
-            
+
             await fetchCustomers();
         }
 
@@ -381,15 +504,15 @@
             try {
                 const res = await fetch(`${API_BASE}/customers`, { headers: getAuthHeader() });
                 if (res.status === 401) return logout(); // Token expired
-                
+
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error);
-                
+
                 const tbody = document.getElementById('customer-list');
                 tbody.innerHTML = '';
-                
+
                 if (!data.customers || data.customers.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#94a3b8;">No customers found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#7A7A8C;">No customers found.</td></tr>`;
                     return;
                 }
 
@@ -397,8 +520,8 @@
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>
-                            <div style="font-weight:600; color:#fff;">${escapeHTML(c.name)}</div>
-                            <div style="font-size:0.8rem; color:#94a3b8;">${escapeHTML(c.email || '—')}</div>
+                            <div style="font-weight:600; color:#1A1A2E;">${escapeHTML(c.name)}</div>
+                            <div style="font-size:0.8rem; color:#7A7A8C;">${escapeHTML(c.email || '—')}</div>
                         </td>
                         <td>${escapeHTML(c.company || '—')}</td>
                     `;
@@ -421,11 +544,11 @@
                     headers: getAuthHeader(),
                     body: JSON.stringify({ name, email, company })
                 });
-                
+
                 if (res.status === 401) return logout();
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error);
-                
+
                 showAlert(dashAlert, 'Customer added successfully', 'success');
                 document.getElementById('customer-form').reset();
                 await fetchCustomers();
@@ -437,7 +560,7 @@
         // XSS Prevention helper
         function escapeHTML(str) {
             if (!str) return '';
-            return str.replace(/[&<>'"]/g, 
+            return str.replace(/[&<>'"]/g,
                 tag => ({
                     '&': '&amp;',
                     '<': '&lt;',
