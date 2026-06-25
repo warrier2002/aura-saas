@@ -1,0 +1,126 @@
+﻿2026-06-25T19:44:26.7586345Z Current runner version: '2.335.1'
+2026-06-25T19:44:26.7612319Z ##[group]Runner Image Provisioner
+2026-06-25T19:44:26.7613179Z Hosted Compute Agent
+2026-06-25T19:44:26.7613843Z Version: 20260611.554
+2026-06-25T19:44:26.7614552Z Commit: 5e0782fdc9014723d3be820dd114dd31555c2bd1
+2026-06-25T19:44:26.7615275Z Build Date: 2026-06-11T21:40:46Z
+2026-06-25T19:44:26.7616020Z Worker ID: {cae93360-07ff-4f9f-bb69-047234f99ea1}
+2026-06-25T19:44:26.7616744Z Azure Region: eastus
+2026-06-25T19:44:26.7617378Z ##[endgroup]
+2026-06-25T19:44:26.7619169Z ##[group]Operating System
+2026-06-25T19:44:26.7619851Z Ubuntu
+2026-06-25T19:44:26.7620453Z 24.04.4
+2026-06-25T19:44:26.7620978Z LTS
+2026-06-25T19:44:26.7621484Z ##[endgroup]
+2026-06-25T19:44:26.7622209Z ##[group]Runner Image
+2026-06-25T19:44:26.7622842Z Image: ubuntu-24.04
+2026-06-25T19:44:26.7623525Z Version: 20260622.220.1
+2026-06-25T19:44:26.7624803Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260622.220/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-25T19:44:26.7626406Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260622.220
+2026-06-25T19:44:26.7627402Z ##[endgroup]
+2026-06-25T19:44:26.7629136Z ##[group]GITHUB_TOKEN Permissions
+2026-06-25T19:44:26.7631469Z Contents: read
+2026-06-25T19:44:26.7632251Z Metadata: read
+2026-06-25T19:44:26.7632861Z Packages: read
+2026-06-25T19:44:26.7633416Z ##[endgroup]
+2026-06-25T19:44:26.7635586Z Secret source: Actions
+2026-06-25T19:44:26.7636614Z Prepare workflow directory
+2026-06-25T19:44:26.7977342Z Prepare all required actions
+2026-06-25T19:44:26.8018078Z Getting action download info
+2026-06-25T19:44:26.9949964Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-06-25T19:44:27.1565792Z Complete job name: Frontend CI
+2026-06-25T19:44:27.2400698Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:44:27.2409897Z ##[group]Run actions/checkout@v4
+2026-06-25T19:44:27.2410676Z with:
+2026-06-25T19:44:27.2411151Z   repository: warrier2002/aura-saas
+2026-06-25T19:44:27.2415686Z   token: ***
+2026-06-25T19:44:27.2416133Z   ssh-strict: true
+2026-06-25T19:44:27.2416592Z   ssh-user: git
+2026-06-25T19:44:27.2417059Z   persist-credentials: true
+2026-06-25T19:44:27.2417571Z   clean: true
+2026-06-25T19:44:27.2418435Z   sparse-checkout-cone-mode: true
+2026-06-25T19:44:27.2419005Z   fetch-depth: 1
+2026-06-25T19:44:27.2419457Z   fetch-tags: false
+2026-06-25T19:44:27.2419919Z   show-progress: true
+2026-06-25T19:44:27.2420381Z   lfs: false
+2026-06-25T19:44:27.2420843Z   submodules: false
+2026-06-25T19:44:27.2421320Z   set-safe-directory: true
+2026-06-25T19:44:27.2422142Z ##[endgroup]
+2026-06-25T19:44:27.3463652Z Syncing repository: warrier2002/aura-saas
+2026-06-25T19:44:27.3465660Z ##[group]Getting Git version info
+2026-06-25T19:44:27.3466480Z Working directory is '/home/runner/work/aura-saas/aura-saas'
+2026-06-25T19:44:27.3467932Z [command]/usr/bin/git version
+2026-06-25T19:44:27.3521502Z git version 2.54.0
+2026-06-25T19:44:27.3574508Z ##[endgroup]
+2026-06-25T19:44:27.3588948Z Temporarily overriding HOME='/home/runner/work/_temp/082cae9b-02ca-43f1-9f51-4c4bb147e9d7' before making global git config changes
+2026-06-25T19:44:27.3591296Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-25T19:44:27.3594728Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aura-saas/aura-saas
+2026-06-25T19:44:27.3643539Z Deleting the contents of '/home/runner/work/aura-saas/aura-saas'
+2026-06-25T19:44:27.3647488Z ##[group]Initializing the repository
+2026-06-25T19:44:27.3652804Z [command]/usr/bin/git init /home/runner/work/aura-saas/aura-saas
+2026-06-25T19:44:27.3769851Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-06-25T19:44:27.3771766Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-06-25T19:44:27.3773285Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-06-25T19:44:27.3774831Z hint: call:
+2026-06-25T19:44:27.3776031Z hint:
+2026-06-25T19:44:27.3777292Z hint: 	git config --global init.defaultBranch <name>
+2026-06-25T19:44:27.3779084Z hint:
+2026-06-25T19:44:27.3780556Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-06-25T19:44:27.3782765Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-06-25T19:44:27.3784328Z hint:
+2026-06-25T19:44:27.3785196Z hint: 	git branch -m <name>
+2026-06-25T19:44:27.3786330Z hint:
+2026-06-25T19:44:27.3788106Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-06-25T19:44:27.3790254Z Initialized empty Git repository in /home/runner/work/aura-saas/aura-saas/.git/
+2026-06-25T19:44:27.3793412Z [command]/usr/bin/git remote add origin https://github.com/warrier2002/aura-saas
+2026-06-25T19:44:27.3832656Z ##[endgroup]
+2026-06-25T19:44:27.3834005Z ##[group]Disabling automatic garbage collection
+2026-06-25T19:44:27.3837390Z [command]/usr/bin/git config --local gc.auto 0
+2026-06-25T19:44:27.3867137Z ##[endgroup]
+2026-06-25T19:44:27.3868764Z ##[group]Setting up auth
+2026-06-25T19:44:27.3874494Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-25T19:44:27.3909121Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-25T19:44:27.4240410Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-25T19:44:27.4273423Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-25T19:44:27.4491435Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-25T19:44:27.4522384Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-25T19:44:27.4736739Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-06-25T19:44:27.4771066Z ##[endgroup]
+2026-06-25T19:44:27.4771902Z ##[group]Fetching the repository
+2026-06-25T19:44:27.4781675Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +26245c36001bd20f1828b0f6909b000d528f20b3:refs/remotes/origin/main
+2026-06-25T19:44:27.6899531Z From https://github.com/warrier2002/aura-saas
+2026-06-25T19:44:27.6901966Z  * [new ref]         26245c36001bd20f1828b0f6909b000d528f20b3 -> origin/main
+2026-06-25T19:44:27.6938008Z ##[endgroup]
+2026-06-25T19:44:27.6939788Z ##[group]Determining the checkout info
+2026-06-25T19:44:27.6941874Z ##[endgroup]
+2026-06-25T19:44:27.6948203Z [command]/usr/bin/git sparse-checkout disable
+2026-06-25T19:44:27.6996604Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-06-25T19:44:27.7025923Z ##[group]Checking out the ref
+2026-06-25T19:44:27.7032757Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-06-25T19:44:27.7201887Z Switched to a new branch 'main'
+2026-06-25T19:44:27.7204032Z branch 'main' set up to track 'origin/main'.
+2026-06-25T19:44:27.7210582Z ##[endgroup]
+2026-06-25T19:44:27.7261229Z [command]/usr/bin/git log -1 --format=%H
+2026-06-25T19:44:27.7285473Z 26245c36001bd20f1828b0f6909b000d528f20b3
+2026-06-25T19:44:27.7538504Z ##[group]Run if ! grep -q 'login-view' index.html; then echo "Missing login view"; exit 1; fi
+2026-06-25T19:44:27.7541280Z [36;1mif ! grep -q 'login-view' index.html; then echo "Missing login view"; exit 1; fi[0m
+2026-06-25T19:44:27.7544087Z [36;1mif ! grep -q 'Authorization' index.html; then echo "Missing Authorization header"; exit 1; fi[0m
+2026-06-25T19:44:27.7715737Z shell: /usr/bin/bash -e {0}
+2026-06-25T19:44:27.7717073Z ##[endgroup]
+2026-06-25T19:44:27.8211123Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:44:27.8216812Z Post job cleanup.
+2026-06-25T19:44:27.9113151Z [command]/usr/bin/git version
+2026-06-25T19:44:27.9155916Z git version 2.54.0
+2026-06-25T19:44:27.9229738Z Temporarily overriding HOME='/home/runner/work/_temp/15cbfb37-2bce-41c4-9797-e78403cccac1' before making global git config changes
+2026-06-25T19:44:27.9233525Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-25T19:44:27.9236291Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aura-saas/aura-saas
+2026-06-25T19:44:27.9275179Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-25T19:44:27.9310111Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-25T19:44:27.9533441Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-25T19:44:27.9559599Z http.https://github.com/.extraheader
+2026-06-25T19:44:27.9570174Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-06-25T19:44:27.9603233Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-25T19:44:27.9830197Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-25T19:44:27.9861918Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-25T19:44:28.0228611Z Cleaning up orphan processes
+2026-06-25T19:44:28.0692650Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,0 +1,33 @@
+﻿2026-06-25T19:44:49.1930549Z Current runner version: '2.335.1'
+2026-06-25T19:44:49.1956776Z ##[group]Runner Image Provisioner
+2026-06-25T19:44:49.1957598Z Hosted Compute Agent
+2026-06-25T19:44:49.1958142Z Version: 20260611.554
+2026-06-25T19:44:49.1958828Z Commit: 5e0782fdc9014723d3be820dd114dd31555c2bd1
+2026-06-25T19:44:49.1959486Z Build Date: 2026-06-11T21:40:46Z
+2026-06-25T19:44:49.1960143Z Worker ID: {e5ec952b-155f-4a13-a7ea-b6b88f2d0867}
+2026-06-25T19:44:49.1960853Z Azure Region: centralus
+2026-06-25T19:44:49.1961366Z ##[endgroup]
+2026-06-25T19:44:49.1963133Z ##[group]Operating System
+2026-06-25T19:44:49.1963740Z Ubuntu
+2026-06-25T19:44:49.1964284Z 24.04.4
+2026-06-25T19:44:49.1964766Z LTS
+2026-06-25T19:44:49.1965232Z ##[endgroup]
+2026-06-25T19:44:49.1965793Z ##[group]Runner Image
+2026-06-25T19:44:49.1966384Z Image: ubuntu-24.04
+2026-06-25T19:44:49.1966894Z Version: 20260622.220.1
+2026-06-25T19:44:49.1967901Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260622.220/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-25T19:44:49.1969493Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260622.220
+2026-06-25T19:44:49.1970344Z ##[endgroup]
+2026-06-25T19:44:49.1971472Z ##[group]GITHUB_TOKEN Permissions
+2026-06-25T19:44:49.1973828Z Contents: read
+2026-06-25T19:44:49.1974390Z Metadata: read
+2026-06-25T19:44:49.1975020Z Packages: write
+2026-06-25T19:44:49.1975526Z ##[endgroup]
+2026-06-25T19:44:49.1977892Z Secret source: Actions
+2026-06-25T19:44:49.1978817Z Prepare workflow directory
+2026-06-25T19:44:49.2291126Z Prepare all required actions
+2026-06-25T19:44:49.2328833Z Getting action download info
+2026-06-25T19:44:49.5025684Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-06-25T19:44:49.5899334Z Download action repository 'docker/login-action@v3' (SHA:c94ce9fb468520275223c153574b00df6fe4bcc9)
+2026-06-25T19:44:50.1553962Z Download action repository 'docker/build-push-action@v5' (SHA:ca052bb54ab0790a636c9b5f226502c73d547a25)
+2026-06-25T19:44:50.8342840Z Complete job name: 🐳 Build & Push Images

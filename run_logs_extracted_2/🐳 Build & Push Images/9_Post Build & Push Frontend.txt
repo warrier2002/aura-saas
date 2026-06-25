@@ -1,0 +1,9 @@
+﻿2026-06-25T19:53:22.8296862Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:53:22.8298397Z Post job cleanup.
+2026-06-25T19:53:23.0487150Z ##[group]Removing temp folder /home/runner/work/_temp/docker-actions-toolkit-HyqFuC
+2026-06-25T19:53:23.0492927Z (node:3066) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-06-25T19:53:23.0493655Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-06-25T19:53:23.0495007Z ##[endgroup]
+2026-06-25T19:53:23.0495769Z ##[group]Post cache
+2026-06-25T19:53:23.0497832Z State not set
+2026-06-25T19:53:23.0498659Z ##[endgroup]

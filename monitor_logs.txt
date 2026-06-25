@@ -1,0 +1,53 @@
+﻿2026-06-25T18:57:49.6230398Z Current runner version: '2.335.1'
+2026-06-25T18:57:49.6255950Z ##[group]Runner Image Provisioner
+2026-06-25T18:57:49.6256869Z Hosted Compute Agent
+2026-06-25T18:57:49.6257480Z Version: 20260611.554
+2026-06-25T18:57:49.6258139Z Commit: 5e0782fdc9014723d3be820dd114dd31555c2bd1
+2026-06-25T18:57:49.6258916Z Build Date: 2026-06-11T21:40:46Z
+2026-06-25T18:57:49.6259593Z Worker ID: {3887692c-a147-47ce-8cb3-108480f5ed54}
+2026-06-25T18:57:49.6260275Z Azure Region: westus
+2026-06-25T18:57:49.6260900Z ##[endgroup]
+2026-06-25T18:57:49.6262385Z ##[group]Operating System
+2026-06-25T18:57:49.6263068Z Ubuntu
+2026-06-25T18:57:49.6263597Z 24.04.4
+2026-06-25T18:57:49.6264332Z LTS
+2026-06-25T18:57:49.6264906Z ##[endgroup]
+2026-06-25T18:57:49.6265490Z ##[group]Runner Image
+2026-06-25T18:57:49.6266144Z Image: ubuntu-24.04
+2026-06-25T18:57:49.6266720Z Version: 20260622.220.1
+2026-06-25T18:57:49.6268049Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260622.220/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-25T18:57:49.6269586Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260622.220
+2026-06-25T18:57:49.6270599Z ##[endgroup]
+2026-06-25T18:57:49.6271756Z ##[group]GITHUB_TOKEN Permissions
+2026-06-25T18:57:49.6274297Z Contents: read
+2026-06-25T18:57:49.6275016Z Metadata: read
+2026-06-25T18:57:49.6275581Z Packages: read
+2026-06-25T18:57:49.6276171Z ##[endgroup]
+2026-06-25T18:57:49.6278553Z Secret source: Actions
+2026-06-25T18:57:49.6279463Z Prepare workflow directory
+2026-06-25T18:57:49.6618796Z Prepare all required actions
+2026-06-25T18:57:49.6888531Z Uses: warrier2002/aura-saas/.github/workflows/deploy-env-template.yml@refs/heads/main (fe95f1a744c22de52acdf39946d2ca4a6c6bac01)
+2026-06-25T18:57:49.6893533Z ##[group] Inputs
+2026-06-25T18:57:49.6894468Z   environment: dev
+2026-06-25T18:57:49.6895171Z   image_tag: fe95f1a
+2026-06-25T18:57:49.6895733Z ##[endgroup]
+2026-06-25T18:57:49.6896462Z Complete job name: deploy-dev / 🔍 Monitor Health (dev)
+2026-06-25T18:57:49.7530720Z ##[group]Run EC2_IP="13.232.34.123"
+2026-06-25T18:57:49.7531712Z [36;1mEC2_IP="13.232.34.123"[0m
+2026-06-25T18:57:49.7532393Z [36;1mecho ">>> Pinging http://$EC2_IP/"[0m
+2026-06-25T18:57:49.7533159Z [36;1mfor i in $(seq 1 12); do[0m
+2026-06-25T18:57:49.7534246Z [36;1m  STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://$EC2_IP/" || true)[0m
+2026-06-25T18:57:49.7535154Z [36;1m  if [ "$STATUS" = "200" ]; then[0m
+2026-06-25T18:57:49.7535980Z [36;1m    echo "✅ Success! Received HTTP 200 OK."[0m
+2026-06-25T18:57:49.7536674Z [36;1m    exit 0[0m
+2026-06-25T18:57:49.7537245Z [36;1m  fi[0m
+2026-06-25T18:57:49.7537790Z [36;1m  sleep 15[0m
+2026-06-25T18:57:49.7538351Z [36;1mdone[0m
+2026-06-25T18:57:49.7539197Z [36;1mecho "❌ ERROR: Web App failed to return HTTP 200 OK within 3 minutes!"[0m
+2026-06-25T18:57:49.7540030Z [36;1mexit 1[0m
+2026-06-25T18:57:49.8277021Z shell: /usr/bin/bash -e {0}
+2026-06-25T18:57:49.8278686Z ##[endgroup]
+2026-06-25T18:57:49.8487091Z >>> Pinging http://13.232.34.123/
+2026-06-25T19:00:55.4050296Z ❌ ERROR: Web App failed to return HTTP 200 OK within 3 minutes!
+2026-06-25T19:00:55.4069239Z ##[error]Process completed with exit code 1.
+2026-06-25T19:00:55.4216617Z Cleaning up orphan processes

@@ -1,0 +1,45 @@
+﻿2026-06-25T19:52:26.8475194Z ##[group]Run terraform fmt -check
+2026-06-25T19:52:26.8475653Z [36;1mterraform fmt -check[0m
+2026-06-25T19:52:26.8476153Z [36;1mterraform init -backend-config="region=***"[0m
+2026-06-25T19:52:26.8476512Z [36;1mterraform validate[0m
+2026-06-25T19:52:26.8769415Z shell: /usr/bin/bash -e {0}
+2026-06-25T19:52:26.8769746Z env:
+2026-06-25T19:52:26.8770099Z   AWS_DEFAULT_REGION: ***
+2026-06-25T19:52:26.8770382Z   AWS_REGION: ***
+2026-06-25T19:52:26.8770640Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T19:52:26.8771003Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T19:52:26.8771402Z   TERRAFORM_CLI_PATH: /home/runner/work/_temp/ba90b5c6-1f54-43f0-addb-e5dc82fe80f8
+2026-06-25T19:52:26.8771838Z ##[endgroup]
+2026-06-25T19:52:27.3362192Z 
+2026-06-25T19:52:27.3363639Z [0m[1mInitializing the backend...[0m
+2026-06-25T19:52:29.2199160Z [0m[32m
+2026-06-25T19:52:29.2199988Z Successfully configured the backend "s3"! Terraform will automatically
+2026-06-25T19:52:29.2201181Z use this backend unless the backend configuration changes.[0m
+2026-06-25T19:52:29.6517250Z 
+2026-06-25T19:52:29.6518274Z [0m[1mInitializing provider plugins...[0m
+2026-06-25T19:52:29.6519277Z - Finding hashicorp/aws versions matching "~> 5.0"...
+2026-06-25T19:52:29.7143473Z - Finding hashicorp/tls versions matching "~> 4.0"...
+2026-06-25T19:52:29.7271362Z - Finding hashicorp/random versions matching "~> 3.5"...
+2026-06-25T19:52:29.8190868Z - Installing hashicorp/random v3.9.0...
+2026-06-25T19:52:30.0288148Z - Installed hashicorp/random v3.9.0 (signed by HashiCorp)
+2026-06-25T19:52:30.0922761Z - Installing hashicorp/aws v5.100.0...
+2026-06-25T19:52:33.7843511Z - Installed hashicorp/aws v5.100.0 (signed by HashiCorp)
+2026-06-25T19:52:33.8513317Z - Installing hashicorp/tls v4.3.0...
+2026-06-25T19:52:34.0749955Z - Installed hashicorp/tls v4.3.0 (signed by HashiCorp)
+2026-06-25T19:52:34.0751488Z 
+2026-06-25T19:52:34.0752245Z Terraform has created a lock file [1m.terraform.lock.hcl[0m to record the provider
+2026-06-25T19:52:34.0752997Z selections it made above. Include this file in your version control repository
+2026-06-25T19:52:34.0753695Z so that Terraform can guarantee to make the same selections by default when
+2026-06-25T19:52:34.0754303Z you run "terraform init" in the future.[0m
+2026-06-25T19:52:34.0755238Z 
+2026-06-25T19:52:34.0755995Z [0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+2026-06-25T19:52:34.0756884Z [0m[32m
+2026-06-25T19:52:34.0757492Z You may now begin working with Terraform. Try running "terraform plan" to see
+2026-06-25T19:52:34.0758502Z any changes that are required for your infrastructure. All Terraform commands
+2026-06-25T19:52:34.0759156Z should now work.
+2026-06-25T19:52:34.0759375Z 
+2026-06-25T19:52:34.0759716Z If you ever set or change modules or backend configuration for Terraform,
+2026-06-25T19:52:34.0760629Z rerun this command to reinitialize your working directory. If you forget, other
+2026-06-25T19:52:34.0761749Z commands will detect it and remind you to do so if necessary.[0m
+2026-06-25T19:52:36.2643899Z [32m[1mSuccess![0m The configuration is valid.
+2026-06-25T19:52:36.2645047Z [0m

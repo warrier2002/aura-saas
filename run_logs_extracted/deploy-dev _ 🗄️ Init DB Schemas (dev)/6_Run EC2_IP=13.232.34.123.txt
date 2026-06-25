@@ -1,0 +1,48 @@
+﻿2026-06-25T19:46:58.2205504Z ##[group]Run EC2_IP="13.232.34.123"
+2026-06-25T19:46:58.2205874Z [36;1mEC2_IP="13.232.34.123"[0m
+2026-06-25T19:46:58.2206160Z [36;1mDB_NAME="crm_db"[0m
+2026-06-25T19:46:58.2206422Z [36;1mDB_USER="crm_app_user"[0m
+2026-06-25T19:46:58.2206676Z [36;1m[0m
+2026-06-25T19:46:58.2207007Z [36;1mssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true[0m
+2026-06-25T19:46:58.2207973Z [36;1mscp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no scripts/db_init.sql ec2-user@"$EC2_IP":~/db_init.sql[0m
+2026-06-25T19:46:58.2208525Z [36;1m[0m
+2026-06-25T19:46:58.2208759Z [36;1mcat << EOF > run_db_init.sh[0m
+2026-06-25T19:46:58.2209080Z [36;1mexport PGPASSWORD="${DB_PASSWORD}"[0m
+2026-06-25T19:46:58.2209839Z [36;1mdocker run --rm -v ~/db_init.sql:/db_init.sql -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "${DB_NAME}" -f /db_init.sql[0m
+2026-06-25T19:46:58.2210532Z [36;1mEOF[0m
+2026-06-25T19:46:58.2210741Z [36;1m[0m
+2026-06-25T19:46:58.2211192Z [36;1mscp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no run_db_init.sh ec2-user@"$EC2_IP":~/run_db_init.sh[0m
+2026-06-25T19:46:58.2211953Z [36;1mssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/run_db_init.sh"[0m
+2026-06-25T19:46:58.2242832Z shell: /usr/bin/bash -e {0}
+2026-06-25T19:46:58.2243117Z env:
+2026-06-25T19:46:58.2243568Z   AWS_DEFAULT_REGION: ***
+2026-06-25T19:46:58.2243861Z   AWS_REGION: ***
+2026-06-25T19:46:58.2244129Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T19:46:58.2244502Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T19:46:58.2244794Z   DB_PASSWORD: ***
+2026-06-25T19:46:58.2245177Z   RDS_ENDPOINT: aura-saas-dev-db.cf2y8w206pcs.***.rds.amazonaws.com
+2026-06-25T19:46:58.2245760Z ##[endgroup]
+2026-06-25T19:47:14.6045740Z psql:/db_init.sql:14: NOTICE:  schema "tenant_a" already exists, skipping
+2026-06-25T19:47:14.6046581Z CREATE SCHEMA
+2026-06-25T19:47:14.6047456Z SET
+2026-06-25T19:47:14.6047867Z CREATE TABLE
+2026-06-25T19:47:14.6048240Z CREATE TABLE
+2026-06-25T19:47:14.6048607Z CREATE TABLE
+2026-06-25T19:47:14.6048956Z INSERT 0 0
+2026-06-25T19:47:14.6049322Z CREATE SCHEMA
+2026-06-25T19:47:14.6049659Z SET
+2026-06-25T19:47:14.6049985Z CREATE TABLE
+2026-06-25T19:47:14.6050347Z CREATE TABLE
+2026-06-25T19:47:14.6050686Z CREATE TABLE
+2026-06-25T19:47:14.6051017Z INSERT 0 0
+2026-06-25T19:47:14.6051551Z psql:/db_init.sql:26: NOTICE:  relation "users" already exists, skipping
+2026-06-25T19:47:14.6052379Z psql:/db_init.sql:37: NOTICE:  relation "customers" already exists, skipping
+2026-06-25T19:47:14.6053217Z psql:/db_init.sql:47: NOTICE:  relation "contacts" already exists, skipping
+2026-06-25T19:47:14.6053813Z psql:/db_init.sql:61: NOTICE:  schema "tenant_b" already exists, skipping
+2026-06-25T19:47:14.6054509Z psql:/db_init.sql:73: NOTICE:  relation "users" already exists, skipping
+2026-06-25T19:47:14.6055303Z psql:/db_init.sql:84: NOTICE:  relation "customers" already exists, skipping
+2026-06-25T19:47:14.6056048Z psql:/db_init.sql:94: NOTICE:  relation "contacts" already exists, skipping
+2026-06-25T19:47:14.6058556Z psql:/db_init.sql:112: NOTICE:  DB init complete — schemas: tenant_a, tenant_b
+2026-06-25T19:47:14.6063036Z psql:/db_init.sql:112: NOTICE:  Tables created: users, customers, contacts (in each schema)
+2026-06-25T19:47:14.6076387Z DO
+2026-06-25T19:47:14.6077811Z psql:/db_init.sql:112: NOTICE:  Seed admin users inserted

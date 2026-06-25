@@ -1,0 +1,15 @@
+﻿2026-06-25T19:47:27.4914560Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:47:27.4915884Z ##[group]Run hashicorp/setup-terraform@v3
+2026-06-25T19:47:27.4916175Z with:
+2026-06-25T19:47:27.4916383Z   terraform_version: 1.7.0
+2026-06-25T19:47:27.4916634Z   terraform_wrapper: false
+2026-06-25T19:47:27.4917303Z   cli_config_credentials_hostname: app.terraform.io
+2026-06-25T19:47:27.4917628Z env:
+2026-06-25T19:47:27.4917927Z   AWS_DEFAULT_REGION: ***
+2026-06-25T19:47:27.4918193Z   AWS_REGION: ***
+2026-06-25T19:47:27.4918442Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T19:47:27.4918802Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T19:47:27.4919038Z ##[endgroup]
+2026-06-25T19:47:27.6232980Z (node:2281) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+2026-06-25T19:47:27.6234249Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-06-25T19:47:27.8718651Z [command]/usr/bin/unzip -o -q /home/runner/work/_temp/03f1b004-5afa-4402-86c8-ee9166bdc052

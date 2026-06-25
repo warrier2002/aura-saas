@@ -1,0 +1,32 @@
+﻿2026-06-25T19:52:26.3676488Z Current runner version: '2.335.1'
+2026-06-25T19:52:26.3705497Z ##[group]Runner Image Provisioner
+2026-06-25T19:52:26.3707390Z Hosted Compute Agent
+2026-06-25T19:52:26.3708423Z Version: 20260611.554
+2026-06-25T19:52:26.3709652Z Commit: 5e0782fdc9014723d3be820dd114dd31555c2bd1
+2026-06-25T19:52:26.3710958Z Build Date: 2026-06-11T21:40:46Z
+2026-06-25T19:52:26.3712377Z Worker ID: {0cd89836-7241-4425-921b-0d4bd0cab5ca}
+2026-06-25T19:52:26.3714030Z Azure Region: eastus
+2026-06-25T19:52:26.3715041Z ##[endgroup]
+2026-06-25T19:52:26.3717112Z ##[group]Operating System
+2026-06-25T19:52:26.3717813Z Ubuntu
+2026-06-25T19:52:26.3718333Z 24.04.4
+2026-06-25T19:52:26.3718999Z LTS
+2026-06-25T19:52:26.3719683Z ##[endgroup]
+2026-06-25T19:52:26.3720723Z ##[group]Runner Image
+2026-06-25T19:52:26.3721568Z Image: ubuntu-24.04
+2026-06-25T19:52:26.3722147Z Version: 20260622.220.1
+2026-06-25T19:52:26.3723654Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260622.220/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-25T19:52:26.3725504Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260622.220
+2026-06-25T19:52:26.3726541Z ##[endgroup]
+2026-06-25T19:52:26.3727799Z ##[group]GITHUB_TOKEN Permissions
+2026-06-25T19:52:26.3730429Z Contents: read
+2026-06-25T19:52:26.3731076Z Metadata: read
+2026-06-25T19:52:26.3731778Z Packages: read
+2026-06-25T19:52:26.3732359Z ##[endgroup]
+2026-06-25T19:52:26.3735245Z Secret source: Actions
+2026-06-25T19:52:26.3736368Z Prepare workflow directory
+2026-06-25T19:52:26.4101017Z Prepare all required actions
+2026-06-25T19:52:26.4140408Z Getting action download info
+2026-06-25T19:52:26.6509550Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-06-25T19:52:26.7485592Z Download action repository 'actions/setup-node@v4' (SHA:49933ea5288caeca8642d1e84afbd3f7d6820020)
+2026-06-25T19:52:26.9500948Z Complete job name: Node.js CI

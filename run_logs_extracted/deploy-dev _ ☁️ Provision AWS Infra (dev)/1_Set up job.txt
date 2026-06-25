@@ -1,0 +1,38 @@
+﻿2026-06-25T19:45:24.2005031Z Current runner version: '2.335.1'
+2026-06-25T19:45:24.2030982Z ##[group]Runner Image Provisioner
+2026-06-25T19:45:24.2031966Z Hosted Compute Agent
+2026-06-25T19:45:24.2032752Z Version: 20260611.554
+2026-06-25T19:45:24.2033425Z Commit: 5e0782fdc9014723d3be820dd114dd31555c2bd1
+2026-06-25T19:45:24.2034284Z Build Date: 2026-06-11T21:40:46Z
+2026-06-25T19:45:24.2035076Z Worker ID: {aa43e60d-f936-4287-9baf-5f2224424273}
+2026-06-25T19:45:24.2035835Z Azure Region: westcentralus
+2026-06-25T19:45:24.2036594Z ##[endgroup]
+2026-06-25T19:45:24.2038149Z ##[group]Operating System
+2026-06-25T19:45:24.2038989Z Ubuntu
+2026-06-25T19:45:24.2039564Z 24.04.4
+2026-06-25T19:45:24.2040098Z LTS
+2026-06-25T19:45:24.2040994Z ##[endgroup]
+2026-06-25T19:45:24.2041599Z ##[group]Runner Image
+2026-06-25T19:45:24.2042309Z Image: ubuntu-24.04
+2026-06-25T19:45:24.2042921Z Version: 20260622.220.1
+2026-06-25T19:45:24.2044158Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260622.220/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-25T19:45:24.2045999Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260622.220
+2026-06-25T19:45:24.2047095Z ##[endgroup]
+2026-06-25T19:45:24.2048443Z ##[group]GITHUB_TOKEN Permissions
+2026-06-25T19:45:24.2050719Z Contents: read
+2026-06-25T19:45:24.2051858Z Metadata: read
+2026-06-25T19:45:24.2052524Z Packages: read
+2026-06-25T19:45:24.2053120Z ##[endgroup]
+2026-06-25T19:45:24.2055666Z Secret source: Actions
+2026-06-25T19:45:24.2056500Z Prepare workflow directory
+2026-06-25T19:45:24.2405279Z Prepare all required actions
+2026-06-25T19:45:24.2445146Z Getting action download info
+2026-06-25T19:45:24.6005317Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-06-25T19:45:24.6751529Z Download action repository 'aws-actions/configure-aws-credentials@v4' (SHA:7474bc4690e29a8392af63c5b98e7449536d5c3a)
+2026-06-25T19:45:25.3989249Z Download action repository 'hashicorp/setup-terraform@v3' (SHA:b9cd54a3c349d3f38e8881555d616ced269862dd)
+2026-06-25T19:45:26.1510052Z Uses: warrier2002/aura-saas/.github/workflows/deploy-env-template.yml@refs/heads/main (26245c36001bd20f1828b0f6909b000d528f20b3)
+2026-06-25T19:45:26.1516796Z ##[group] Inputs
+2026-06-25T19:45:26.1517965Z   environment: dev
+2026-06-25T19:45:26.1519039Z   image_tag: 26245c3
+2026-06-25T19:45:26.1520091Z ##[endgroup]
+2026-06-25T19:45:26.1521565Z Complete job name: deploy-dev / ☁️ Provision AWS Infra (dev)

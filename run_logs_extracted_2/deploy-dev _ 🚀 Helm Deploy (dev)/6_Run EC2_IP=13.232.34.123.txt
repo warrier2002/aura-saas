@@ -1,0 +1,48 @@
+﻿2026-06-25T19:55:41.3197337Z ##[group]Run EC2_IP="13.232.34.123"
+2026-06-25T19:55:41.3197729Z [36;1mEC2_IP="13.232.34.123"[0m
+2026-06-25T19:55:41.3198003Z [36;1mDB_NAME="crm_db"[0m
+2026-06-25T19:55:41.3198256Z [36;1mDB_USER="crm_app_user"[0m
+2026-06-25T19:55:41.3198523Z [36;1mIMAGE_TAG="5865fc1"[0m
+2026-06-25T19:55:41.3198839Z [36;1mREPO="ghcr.io/warrier2002/aura-saas"[0m
+2026-06-25T19:55:41.3199472Z [36;1m[0m
+2026-06-25T19:55:41.3199802Z [36;1mssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true[0m
+2026-06-25T19:55:41.3200428Z [36;1mssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "mkdir -p ~/helm"[0m
+2026-06-25T19:55:41.3201161Z [36;1mscp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -r helm/aura-saas ec2-user@"$EC2_IP":~/helm/[0m
+2026-06-25T19:55:41.3201649Z [36;1m[0m
+2026-06-25T19:55:41.3201866Z [36;1mcat << EOF > deploy.sh[0m
+2026-06-25T19:55:41.3202126Z [36;1mset -e[0m
+2026-06-25T19:55:41.3202403Z [36;1mexport KUBECONFIG=/home/ec2-user/.kube/config[0m
+2026-06-25T19:55:41.3202893Z [36;1m# We do not strictly need docker login if images are public, but keeping it[0m
+2026-06-25T19:55:41.3203437Z [36;1m# To avoid errors if the image is public, we can just echo skip if no token[0m
+2026-06-25T19:55:41.3203915Z [36;1mhelm upgrade --install aura-saas ~/helm/aura-saas \[0m
+2026-06-25T19:55:41.3204281Z [36;1m  --namespace crm-dev \[0m
+2026-06-25T19:55:41.3204573Z [36;1m  -f ~/helm/aura-saas/values.yaml \[0m
+2026-06-25T19:55:41.3205075Z [36;1m  --create-namespace \[0m
+2026-06-25T19:55:41.3205429Z [36;1m  --set backend.image.repository="${REPO}/crm-backend" \[0m
+2026-06-25T19:55:41.3205825Z [36;1m  --set backend.image.tag="${IMAGE_TAG}" \[0m
+2026-06-25T19:55:41.3206229Z [36;1m  --set frontend.image.repository="${REPO}/crm-frontend" \[0m
+2026-06-25T19:55:41.3206645Z [36;1m  --set frontend.image.tag="${IMAGE_TAG}" \[0m
+2026-06-25T19:55:41.3206978Z [36;1m  --set db.host="${RDS_ENDPOINT}" \[0m
+2026-06-25T19:55:41.3207281Z [36;1m  --set db.name="${DB_NAME}" \[0m
+2026-06-25T19:55:41.3207584Z [36;1m  --set db.username="${DB_USER}" \[0m
+2026-06-25T19:55:41.3208073Z [36;1m  --set db.*** \[0m
+2026-06-25T19:55:41.3208351Z [36;1m  --set jwtSecret="${JWT_SECRET}" \[0m
+2026-06-25T19:55:41.3208664Z [36;1m  --set ingress.host="${EC2_IP}" \[0m
+2026-06-25T19:55:41.3208960Z [36;1m  --wait --timeout 8m[0m
+2026-06-25T19:55:41.3209604Z [36;1mkubectl get pods -n crm-dev[0m
+2026-06-25T19:55:41.3209878Z [36;1mEOF[0m
+2026-06-25T19:55:41.3210087Z [36;1m[0m
+2026-06-25T19:55:41.3210502Z [36;1mscp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.sh ec2-user@"$EC2_IP":~/deploy.sh[0m
+2026-06-25T19:55:41.3211190Z [36;1mssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/deploy.sh"[0m
+2026-06-25T19:55:41.3243289Z shell: /usr/bin/bash -e {0}
+2026-06-25T19:55:41.3243569Z env:
+2026-06-25T19:55:41.3243842Z   AWS_DEFAULT_REGION: ***
+2026-06-25T19:55:41.3244116Z   AWS_REGION: ***
+2026-06-25T19:55:41.3244391Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T19:55:41.3244756Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T19:55:41.3245029Z   DB_PASSWORD: ***
+2026-06-25T19:55:41.3245425Z   JWT_SECRET: ***
+2026-06-25T19:55:41.3245798Z   RDS_ENDPOINT: aura-saas-dev-db.cf2y8w206pcs.***.rds.amazonaws.com
+2026-06-25T19:55:41.3246193Z ##[endgroup]
+2026-06-25T19:56:08.4531117Z Error: UPGRADE FAILED: failed to create resource: Ingress.networking.k8s.io "crm-ingress" is invalid: spec.rules[0].host: Invalid value: "13.232.34.123": must be a DNS name, not an IP address
+2026-06-25T19:56:08.4655695Z ##[error]Process completed with exit code 1.

@@ -1,0 +1,113 @@
+﻿2026-06-25T19:53:33.8984277Z ##[group]Run BUCKET="aura-saas-tfstate"
+2026-06-25T19:53:33.8985333Z [36;1mBUCKET="aura-saas-tfstate"[0m
+2026-06-25T19:53:33.8986383Z [36;1mREGION="***"[0m
+2026-06-25T19:53:33.8987393Z [36;1mif ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then[0m
+2026-06-25T19:53:33.8988611Z [36;1m  if [ "$REGION" = "us-east-1" ]; then[0m
+2026-06-25T19:53:33.8989820Z [36;1m    aws s3api create-bucket --bucket "$BUCKET" --region "$REGION"[0m
+2026-06-25T19:53:33.8990968Z [36;1m  else[0m
+2026-06-25T19:53:33.8992498Z [36;1m    aws s3api create-bucket --bucket "$BUCKET" --region "$REGION" --create-bucket-configuration LocationConstraint="$REGION"[0m
+2026-06-25T19:53:33.8994375Z [36;1m  fi[0m
+2026-06-25T19:53:33.8995633Z [36;1m  aws s3api put-bucket-versioning --bucket "$BUCKET" --versioning-configuration Status=Enabled[0m
+2026-06-25T19:53:33.8997079Z [36;1mfi[0m
+2026-06-25T19:53:33.8997682Z [36;1m[0m
+2026-06-25T19:53:33.8998535Z [36;1mterraform init -backend-config="region=***"[0m
+2026-06-25T19:53:33.8999840Z [36;1mterraform workspace select dev || terraform workspace new dev[0m
+2026-06-25T19:53:33.9000968Z [36;1m[0m
+2026-06-25T19:53:33.9002280Z [36;1mterraform apply -auto-approve -var-file="environments/dev.tfvars" -var="aws_region=***"[0m
+2026-06-25T19:53:33.9155705Z shell: /usr/bin/bash -e {0}
+2026-06-25T19:53:33.9156500Z env:
+2026-06-25T19:53:33.9157257Z   AWS_DEFAULT_REGION: ***
+2026-06-25T19:53:33.9158080Z   AWS_REGION: ***
+2026-06-25T19:53:33.9159040Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T19:53:33.9160048Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T19:53:33.9160795Z ##[endgroup]
+2026-06-25T19:53:38.5683963Z {
+2026-06-25T19:53:38.5689045Z     "BucketArn": "arn:aws:s3:::aura-saas-tfstate",
+2026-06-25T19:53:38.5690095Z     "BucketRegion": "***",
+2026-06-25T19:53:38.5690420Z     "AccessPointAlias": false
+2026-06-25T19:53:38.5690698Z }
+2026-06-25T19:53:38.7330056Z 
+2026-06-25T19:53:38.7334991Z [0m[1mInitializing the backend...[0m
+2026-06-25T19:53:40.7147977Z [0m[32m
+2026-06-25T19:53:40.7148638Z Successfully configured the backend "s3"! Terraform will automatically
+2026-06-25T19:53:40.7149352Z use this backend unless the backend configuration changes.[0m
+2026-06-25T19:53:41.1831001Z 
+2026-06-25T19:53:41.1832003Z [0m[1mInitializing provider plugins...[0m
+2026-06-25T19:53:41.1832572Z - Finding hashicorp/random versions matching "~> 3.5"...
+2026-06-25T19:53:41.2102179Z - Finding hashicorp/aws versions matching "~> 5.0"...
+2026-06-25T19:53:41.2235580Z - Finding hashicorp/tls versions matching "~> 4.0"...
+2026-06-25T19:53:41.2851000Z - Installing hashicorp/aws v5.100.0...
+2026-06-25T19:53:44.4209034Z - Installed hashicorp/aws v5.100.0 (signed by HashiCorp)
+2026-06-25T19:53:44.4786587Z - Installing hashicorp/tls v4.3.0...
+2026-06-25T19:53:44.6473259Z - Installed hashicorp/tls v4.3.0 (signed by HashiCorp)
+2026-06-25T19:53:44.7304138Z - Installing hashicorp/random v3.9.0...
+2026-06-25T19:53:44.8839524Z - Installed hashicorp/random v3.9.0 (signed by HashiCorp)
+2026-06-25T19:53:44.8839946Z 
+2026-06-25T19:53:44.8840637Z Terraform has created a lock file [1m.terraform.lock.hcl[0m to record the provider
+2026-06-25T19:53:44.8841320Z selections it made above. Include this file in your version control repository
+2026-06-25T19:53:44.8842016Z so that Terraform can guarantee to make the same selections by default when
+2026-06-25T19:53:44.8842570Z you run "terraform init" in the future.[0m
+2026-06-25T19:53:44.8842832Z 
+2026-06-25T19:53:44.8843304Z [0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+2026-06-25T19:53:44.8843775Z [0m[32m
+2026-06-25T19:53:44.8844164Z You may now begin working with Terraform. Try running "terraform plan" to see
+2026-06-25T19:53:44.8844785Z any changes that are required for your infrastructure. All Terraform commands
+2026-06-25T19:53:44.8845262Z should now work.
+2026-06-25T19:53:44.8845410Z 
+2026-06-25T19:53:44.8845647Z If you ever set or change modules or backend configuration for Terraform,
+2026-06-25T19:53:44.8846255Z rerun this command to reinitialize your working directory. If you forget, other
+2026-06-25T19:53:44.8847136Z commands will detect it and remind you to do so if necessary.[0m
+2026-06-25T19:53:47.2444677Z [0m[32mSwitched to workspace "dev".[0m
+2026-06-25T19:53:51.6641182Z [0m[1mrandom_password.jwt_secret: Refreshing state... [id=none][0m
+2026-06-25T19:53:51.6643078Z [0m[1mrandom_password.db_password: Refreshing state... [id=none][0m
+2026-06-25T19:53:51.6644839Z [0m[1mtls_private_key.deploy_key: Refreshing state... [id=0256a17c0f369da3a69a8b7a0e383f4c7090d274][0m
+2026-06-25T19:53:52.6589985Z [0m[1mdata.aws_ssm_parameter.al2023: Reading...[0m[0m
+2026-06-25T19:53:52.6594230Z [0m[1maws_key_pair.deploy_key: Refreshing state... [id=aura-saas-dev-deploy-key][0m
+2026-06-25T19:53:52.6595336Z [0m[1maws_vpc.main: Refreshing state... [id=vpc-0dee9ad000befe936][0m
+2026-06-25T19:53:53.5980126Z [0m[1mdata.aws_ssm_parameter.al2023: Read complete after 1s [id=/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64][0m
+2026-06-25T19:53:55.4019396Z [0m[1maws_subnet.public: Refreshing state... [id=subnet-070e47478bbc5ac62][0m
+2026-06-25T19:53:55.4020551Z [0m[1maws_subnet.private_b: Refreshing state... [id=subnet-070cf5756b70df49e][0m
+2026-06-25T19:53:55.4021700Z [0m[1maws_subnet.private_a: Refreshing state... [id=subnet-0f13a7886cfc2ee5d][0m
+2026-06-25T19:53:55.4022956Z [0m[1maws_internet_gateway.main: Refreshing state... [id=igw-06710a0547bf773fa][0m
+2026-06-25T19:53:55.4055085Z [0m[1maws_security_group.ec2: Refreshing state... [id=sg-030c971598c848164][0m
+2026-06-25T19:53:55.9806950Z [0m[1maws_route_table.public: Refreshing state... [id=rtb-0bd005d8344d5bdbc][0m
+2026-06-25T19:53:56.0114023Z [0m[1maws_db_subnet_group.rds: Refreshing state... [id=aura-saas-dev-rds-subnet-group][0m
+2026-06-25T19:53:56.2649289Z [0m[1maws_security_group.rds: Refreshing state... [id=sg-062ca8758366099bf][0m
+2026-06-25T19:53:56.2665413Z [0m[1maws_instance.crm_server: Refreshing state... [id=i-0b346585d7c8f4cea][0m
+2026-06-25T19:53:56.2833536Z [0m[1maws_route_table_association.public: Refreshing state... [id=rtbassoc-0184283d34dca85e3][0m
+2026-06-25T19:53:57.4368055Z [0m[1maws_db_instance.postgres: Refreshing state... [id=db-LWJXREGBIRISP7J6XS44UHRQ5E][0m
+2026-06-25T19:53:59.5272783Z 
+2026-06-25T19:53:59.5273939Z [0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
+2026-06-25T19:53:59.5274376Z 
+2026-06-25T19:53:59.5274704Z [0mTerraform has compared your real infrastructure against your configuration
+2026-06-25T19:53:59.5275314Z and found no differences, so no changes are needed.
+2026-06-25T19:54:00.6964602Z [0m[1m[32m
+2026-06-25T19:54:00.6965094Z Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+2026-06-25T19:54:00.6965568Z [0m[0m[1m[32m
+2026-06-25T19:54:00.6965820Z Outputs:
+2026-06-25T19:54:00.6965961Z 
+2026-06-25T19:54:00.6966144Z [0mdb_name = "crm_db"
+2026-06-25T19:54:00.6966427Z db_password = <sensitive>
+2026-06-25T19:54:00.6966725Z db_username = "crm_app_user"
+2026-06-25T19:54:00.6967066Z deploy_user = "ec2-user"
+2026-06-25T19:54:00.6967364Z deployment_summary = <<EOT
+2026-06-25T19:54:00.6967652Z ============================================
+2026-06-25T19:54:00.6967992Z Aura SaaS Infrastructure Provisioned
+2026-06-25T19:54:00.6968310Z ============================================
+2026-06-25T19:54:00.6968628Z EC2 Public IP  : 13.232.34.123
+2026-06-25T19:54:00.6969186Z EC2 DNS        : ec2-13-232-34-123.***.compute.amazonaws.com
+2026-06-25T19:54:00.6969758Z RDS Endpoint   : aura-saas-dev-db.cf2y8w206pcs.***.rds.amazonaws.com
+2026-06-25T19:54:00.6970173Z RDS DB Name    : crm_db
+2026-06-25T19:54:00.6970436Z RDS Username   : crm_app_user
+2026-06-25T19:54:00.6970720Z SSH User       : ec2-user
+2026-06-25T19:54:00.6970991Z ============================================
+2026-06-25T19:54:00.6971354Z DB Password and JWT Secret: use terraform output -raw
+2026-06-25T19:54:00.6971707Z ============================================
+2026-06-25T19:54:00.6971906Z 
+2026-06-25T19:54:00.6971991Z EOT
+2026-06-25T19:54:00.6972763Z ec2_public_dns = "ec2-13-232-34-123.***.compute.amazonaws.com"
+2026-06-25T19:54:00.6973294Z ec2_public_ip = "13.232.34.123"
+2026-06-25T19:54:00.6973582Z jwt_secret = <sensitive>
+2026-06-25T19:54:00.6974025Z rds_endpoint = "aura-saas-dev-db.cf2y8w206pcs.***.rds.amazonaws.com"
+2026-06-25T19:54:00.6974435Z rds_port = 5432
+2026-06-25T19:54:00.6974677Z ssh_private_key = <sensitive>

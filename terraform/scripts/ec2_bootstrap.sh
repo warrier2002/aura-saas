@@ -27,6 +27,14 @@ dnf install -y \
     git \
     ca-certificates
 
+# --- Create 2GB Swap File ---
+echo ">>> Creating 2GB Swap File..."
+fallocate -l 2G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
 # --- Install Docker ---
 echo ">>> Installing Docker..."
 dnf install -y docker

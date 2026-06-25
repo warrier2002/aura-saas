@@ -49,15 +49,15 @@ jobs:
           fi
           
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select ${{ inputs.environment }} || terraform workspace new ${{ inputs.environment }}
+          terraform workspace select default || terraform workspace new default
 
-          terraform apply -auto-approve -var-file="environments/${{ inputs.environment }}.tfvars" -var="aws_region=${{ secrets.AWS_REGION }}"
+          terraform apply -auto-approve -var="environment=shared" -var="aws_region=${{ secrets.AWS_REGION }}"
 
       - id: tf
         working-directory: terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select ${{ inputs.environment }} > /dev/null 2>&1 || true
+          terraform workspace select default > /dev/null 2>&1 || true
           
           echo "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT
           echo "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT
@@ -108,7 +108,7 @@ jobs:
       - working-directory: terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select ${{ inputs.environment }} > /dev/null 2>&1 || true
+          terraform workspace select default > /dev/null 2>&1 || true
           
           DB_PASSWORD=$(terraform output -raw db_password)
           SSH_KEY=$(terraform output -raw ssh_private_key)
@@ -125,19 +125,23 @@ jobs:
           
       - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          DB_NAME="${{ needs.provision.outputs.db_name }}"
           DB_USER="${{ needs.provision.outputs.db_username }}"
+          ENV_DB_NAME="crm_db_${{ inputs.environment }}"
           
           ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no scripts/db_init.sql ec2-user@"$EC2_IP":~/db_init.sql
           
           cat << EOF > run_db_init.sh
           export PGPASSWORD="${DB_PASSWORD}"
-          docker run --rm -v ~/db_init.sql:/db_init.sql -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "${DB_NAME}" -f /db_init.sql
+          # Create database if it doesn't exist
+          docker run --rm -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d postgres -c "CREATE DATABASE \${ENV_DB_NAME};" || true
+          
+          # Initialize schema
+          docker run --rm -v ~/db_init.sql:/db_init.sql -e PGPASSWORD="${DB_PASSWORD}" postgres:15-alpine psql -h "${RDS_ENDPOINT}" -U "${DB_USER}" -d "\${ENV_DB_NAME}" -f /db_init.sql
           EOF
           
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no run_db_init.sh ec2-user@"$EC2_IP":~/run_db_init.sh
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/run_db_init.sh"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ec2-user@"$EC2_IP" "bash ~/run_db_init.sh"
 
   # ===========================================================================
   # STAGE 3: HELM DEPLOY
@@ -160,7 +164,7 @@ jobs:
       - working-directory: terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select ${{ inputs.environment }} > /dev/null 2>&1 || true
+          terraform workspace select default > /dev/null 2>&1 || true
           
           DB_PASSWORD=$(terraform output -raw db_password)
           JWT_SECRET=$(terraform output -raw jwt_secret)
@@ -180,8 +184,8 @@ jobs:
 
       - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          DB_NAME="${{ needs.provision.outputs.db_name }}"
           DB_USER="${{ needs.provision.outputs.db_username }}"
+          ENV_DB_NAME="crm_db_${{ inputs.environment }}"
           IMAGE_TAG="${{ inputs.image_tag }}"
           REPO="ghcr.io/${{ github.repository }}"
           
@@ -192,28 +196,26 @@ jobs:
           cat << EOF > deploy.sh
           set -e
           export KUBECONFIG=/home/ec2-user/.kube/config
-          # We do not strictly need docker login if images are public, but keeping it
-          # To avoid errors if the image is public, we can just echo skip if no token
-          helm upgrade --install aura-saas ~/helm/aura-saas \
-            --namespace crm-${{ inputs.environment }} \
-            -f ~/helm/aura-saas/values.yaml \
-            --create-namespace \
-            --set backend.image.repository="${REPO}/crm-backend" \
-            --set backend.image.tag="${IMAGE_TAG}" \
-            --set frontend.image.repository="${REPO}/crm-frontend" \
-            --set frontend.image.tag="${IMAGE_TAG}" \
-            --set db.host="${RDS_ENDPOINT}" \
-            --set db.name="${DB_NAME}" \
-            --set db.username="${DB_USER}" \
-            --set db.password="${DB_PASSWORD}" \
-            --set jwtSecret="${JWT_SECRET}" \
-            --set ingress.host="${EC2_IP}.nip.io" \
+          helm upgrade --install aura-saas ~/helm/aura-saas \\
+            --namespace crm-${{ inputs.environment }} \\
+            -f ~/helm/aura-saas/values.yaml \\
+            --create-namespace \\
+            --set backend.image.repository="${REPO}/crm-backend" \\
+            --set backend.image.tag="${IMAGE_TAG}" \\
+            --set frontend.image.repository="${REPO}/crm-frontend" \\
+            --set frontend.image.tag="${IMAGE_TAG}" \\
+            --set db.host="${RDS_ENDPOINT}" \\
+            --set db.name="\${ENV_DB_NAME}" \\
+            --set db.username="${DB_USER}" \\
+            --set db.password="${DB_PASSWORD}" \\
+            --set jwtSecret="${JWT_SECRET}" \\
+            --set ingress.host="${{ inputs.environment }}.${EC2_IP}.nip.io" \\
             --wait --timeout 8m
           kubectl get pods -n crm-${{ inputs.environment }}
           EOF
           
           scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.sh ec2-user@"$EC2_IP":~/deploy.sh
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "bash ~/deploy.sh"
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ec2-user@"$EC2_IP" "bash ~/deploy.sh"
 
   # ===========================================================================
   # STAGE 4: MONITOR
@@ -225,9 +227,10 @@ jobs:
     steps:
       - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          echo ">>> Pinging http://${EC2_IP}.nip.io/"
+          HOST_URL="${{ inputs.environment }}.${EC2_IP}.nip.io"
+          echo ">>> Pinging http://${HOST_URL}/"
           for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${EC2_IP}.nip.io/" || true)
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${HOST_URL}/" || true)
             if [ "$STATUS" = "200" ]; then
               echo "✅ Success! Received HTTP 200 OK."
               exit 0

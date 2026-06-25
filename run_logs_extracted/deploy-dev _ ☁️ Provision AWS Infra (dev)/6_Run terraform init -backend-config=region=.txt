@@ -1,0 +1,59 @@
+﻿2026-06-25T19:45:58.9216499Z ##[group]Run terraform init -backend-config="region=***"
+2026-06-25T19:45:58.9217087Z [36;1mterraform init -backend-config="region=***"[0m
+2026-06-25T19:45:58.9217536Z [36;1mterraform workspace select dev > /dev/null 2>&1 || true[0m
+2026-06-25T19:45:58.9217922Z [36;1m[0m
+2026-06-25T19:45:58.9218303Z [36;1mecho "ec2_public_ip=$(terraform output -raw ec2_public_ip)" >> $GITHUB_OUTPUT[0m
+2026-06-25T19:45:58.9218922Z [36;1mecho "rds_endpoint=$(terraform output -raw rds_endpoint)" >> $GITHUB_OUTPUT[0m
+2026-06-25T19:45:58.9219491Z [36;1mecho "db_name=$(terraform output -raw db_name)" >> $GITHUB_OUTPUT[0m
+2026-06-25T19:45:58.9220051Z [36;1mecho "db_username=$(terraform output -raw db_username)" >> $GITHUB_OUTPUT[0m
+2026-06-25T19:45:58.9220931Z [36;1m[0m
+2026-06-25T19:45:58.9221331Z [36;1mSSH_KEY=$(terraform output -raw ssh_private_key)[0m
+2026-06-25T19:45:58.9221751Z [36;1mmkdir -p ~/.ssh[0m
+2026-06-25T19:45:58.9222036Z [36;1mecho "$SSH_KEY" > ~/.ssh/deploy_key[0m
+2026-06-25T19:45:58.9222359Z [36;1mchmod 600 ~/.ssh/deploy_key[0m
+2026-06-25T19:45:58.9222854Z [36;1m[0m
+2026-06-25T19:45:58.9223120Z [36;1mEC2_IP=$(terraform output -raw ec2_public_ip)[0m
+2026-06-25T19:45:58.9223479Z [36;1mBOOTSTRAP_SUCCESS=false[0m
+2026-06-25T19:45:58.9223769Z [36;1mfor i in $(seq 1 20); do[0m
+2026-06-25T19:45:58.9224537Z [36;1m  if ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ec2-user@"$EC2_IP" "test -f ~/bootstrap_done.txt && echo ready" 2>/dev/null | grep -q ready; then[0m
+2026-06-25T19:45:58.9225337Z [36;1m    echo ">>> EC2 bootstrap complete!"[0m
+2026-06-25T19:45:58.9225650Z [36;1m    BOOTSTRAP_SUCCESS=true[0m
+2026-06-25T19:45:58.9225918Z [36;1m    break[0m
+2026-06-25T19:45:58.9226132Z [36;1m  fi[0m
+2026-06-25T19:45:58.9226347Z [36;1m  sleep 30[0m
+2026-06-25T19:45:58.9226569Z [36;1mdone[0m
+2026-06-25T19:45:58.9226767Z [36;1m[0m
+2026-06-25T19:45:58.9226996Z [36;1mif [ "$BOOTSTRAP_SUCCESS" = "false" ]; then[0m
+2026-06-25T19:45:58.9227398Z [36;1m  echo "❌ ERROR: EC2 bootstrap timed out or failed!"[0m
+2026-06-25T19:45:58.9227856Z [36;1m  echo ">>> Fetching cloud-init logs for debugging..."[0m
+2026-06-25T19:45:58.9228517Z [36;1m  ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "sudo cat /var/log/cloud-init-output.log" || true[0m
+2026-06-25T19:45:58.9229106Z [36;1m  exit 1[0m
+2026-06-25T19:45:58.9229314Z [36;1mfi[0m
+2026-06-25T19:45:58.9261092Z shell: /usr/bin/bash -e {0}
+2026-06-25T19:45:58.9261362Z env:
+2026-06-25T19:45:58.9261617Z   AWS_DEFAULT_REGION: ***
+2026-06-25T19:45:58.9261909Z   AWS_REGION: ***
+2026-06-25T19:45:58.9262167Z   AWS_ACCESS_KEY_ID: ***
+2026-06-25T19:45:58.9262517Z   AWS_SECRET_ACCESS_KEY: ***
+2026-06-25T19:45:58.9262797Z ##[endgroup]
+2026-06-25T19:45:58.9558604Z 
+2026-06-25T19:45:58.9559383Z [0m[1mInitializing the backend...[0m
+2026-06-25T19:46:02.5178521Z 
+2026-06-25T19:46:02.5179574Z [0m[1mInitializing provider plugins...[0m
+2026-06-25T19:46:02.5180833Z - Reusing previous version of hashicorp/tls from the dependency lock file
+2026-06-25T19:46:02.6377322Z - Reusing previous version of hashicorp/random from the dependency lock file
+2026-06-25T19:46:02.6991248Z - Reusing previous version of hashicorp/aws from the dependency lock file
+2026-06-25T19:46:02.7791869Z - Using previously-installed hashicorp/tls v4.3.0
+2026-06-25T19:46:02.7922091Z - Using previously-installed hashicorp/random v3.9.0
+2026-06-25T19:46:03.2980153Z - Using previously-installed hashicorp/aws v5.100.0
+2026-06-25T19:46:03.2981165Z 
+2026-06-25T19:46:03.2982120Z [0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+2026-06-25T19:46:03.2983212Z [0m[32m
+2026-06-25T19:46:03.2984146Z You may now begin working with Terraform. Try running "terraform plan" to see
+2026-06-25T19:46:03.2985556Z any changes that are required for your infrastructure. All Terraform commands
+2026-06-25T19:46:03.2986467Z should now work.
+2026-06-25T19:46:03.2986754Z 
+2026-06-25T19:46:03.2987209Z If you ever set or change modules or backend configuration for Terraform,
+2026-06-25T19:46:03.2989194Z rerun this command to reinitialize your working directory. If you forget, other
+2026-06-25T19:46:03.2990800Z commands will detect it and remind you to do so if necessary.[0m
+2026-06-25T19:46:28.8414490Z >>> EC2 bootstrap complete!

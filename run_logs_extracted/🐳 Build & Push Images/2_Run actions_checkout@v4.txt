@@ -1,0 +1,73 @@
+﻿2026-06-25T19:44:50.9136342Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:44:50.9147390Z ##[group]Run actions/checkout@v4
+2026-06-25T19:44:50.9148735Z with:
+2026-06-25T19:44:50.9149750Z   repository: warrier2002/aura-saas
+2026-06-25T19:44:50.9161661Z   token: ***
+2026-06-25T19:44:50.9162802Z   ssh-strict: true
+2026-06-25T19:44:50.9163745Z   ssh-user: git
+2026-06-25T19:44:50.9164819Z   persist-credentials: true
+2026-06-25T19:44:50.9165871Z   clean: true
+2026-06-25T19:44:50.9166864Z   sparse-checkout-cone-mode: true
+2026-06-25T19:44:50.9167968Z   fetch-depth: 1
+2026-06-25T19:44:50.9168899Z   fetch-tags: false
+2026-06-25T19:44:50.9169924Z   show-progress: true
+2026-06-25T19:44:50.9170985Z   lfs: false
+2026-06-25T19:44:50.9171876Z   submodules: false
+2026-06-25T19:44:50.9173078Z   set-safe-directory: true
+2026-06-25T19:44:50.9174523Z ##[endgroup]
+2026-06-25T19:44:51.0180357Z Syncing repository: warrier2002/aura-saas
+2026-06-25T19:44:51.0183543Z ##[group]Getting Git version info
+2026-06-25T19:44:51.0185110Z Working directory is '/home/runner/work/aura-saas/aura-saas'
+2026-06-25T19:44:51.0187291Z [command]/usr/bin/git version
+2026-06-25T19:44:51.0209263Z git version 2.54.0
+2026-06-25T19:44:51.0230851Z ##[endgroup]
+2026-06-25T19:44:51.0245970Z Temporarily overriding HOME='/home/runner/work/_temp/fb70ad12-8caf-4750-85f3-72539a6a102f' before making global git config changes
+2026-06-25T19:44:51.0251192Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-25T19:44:51.0255115Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aura-saas/aura-saas
+2026-06-25T19:44:51.0296588Z Deleting the contents of '/home/runner/work/aura-saas/aura-saas'
+2026-06-25T19:44:51.0300853Z ##[group]Initializing the repository
+2026-06-25T19:44:51.0306222Z [command]/usr/bin/git init /home/runner/work/aura-saas/aura-saas
+2026-06-25T19:44:51.0389172Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-06-25T19:44:51.0391798Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-06-25T19:44:51.0395054Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-06-25T19:44:51.0397563Z hint: call:
+2026-06-25T19:44:51.0399076Z hint:
+2026-06-25T19:44:51.0400850Z hint: 	git config --global init.defaultBranch <name>
+2026-06-25T19:44:51.0402991Z hint:
+2026-06-25T19:44:51.0405019Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-06-25T19:44:51.0408607Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-06-25T19:44:51.0411331Z hint:
+2026-06-25T19:44:51.0412731Z hint: 	git branch -m <name>
+2026-06-25T19:44:51.0414037Z hint:
+2026-06-25T19:44:51.0415355Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-06-25T19:44:51.0417396Z Initialized empty Git repository in /home/runner/work/aura-saas/aura-saas/.git/
+2026-06-25T19:44:51.0420725Z [command]/usr/bin/git remote add origin https://github.com/warrier2002/aura-saas
+2026-06-25T19:44:51.0444168Z ##[endgroup]
+2026-06-25T19:44:51.0445875Z ##[group]Disabling automatic garbage collection
+2026-06-25T19:44:51.0447594Z [command]/usr/bin/git config --local gc.auto 0
+2026-06-25T19:44:51.0480284Z ##[endgroup]
+2026-06-25T19:44:51.0481899Z ##[group]Setting up auth
+2026-06-25T19:44:51.0483491Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-25T19:44:51.0514039Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-25T19:44:51.0805543Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-25T19:44:51.0841122Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-25T19:44:51.1011751Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-25T19:44:51.1042463Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-25T19:44:51.1222093Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-06-25T19:44:51.1251687Z ##[endgroup]
+2026-06-25T19:44:51.1260169Z ##[group]Fetching the repository
+2026-06-25T19:44:51.1263269Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +26245c36001bd20f1828b0f6909b000d528f20b3:refs/remotes/origin/main
+2026-06-25T19:44:51.4349573Z From https://github.com/warrier2002/aura-saas
+2026-06-25T19:44:51.4352119Z  * [new ref]         26245c36001bd20f1828b0f6909b000d528f20b3 -> origin/main
+2026-06-25T19:44:51.4381233Z ##[endgroup]
+2026-06-25T19:44:51.4383798Z ##[group]Determining the checkout info
+2026-06-25T19:44:51.4389731Z ##[endgroup]
+2026-06-25T19:44:51.4395437Z [command]/usr/bin/git sparse-checkout disable
+2026-06-25T19:44:51.4430473Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-06-25T19:44:51.4459802Z ##[group]Checking out the ref
+2026-06-25T19:44:51.4464587Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-06-25T19:44:51.4533446Z Switched to a new branch 'main'
+2026-06-25T19:44:51.4535651Z branch 'main' set up to track 'origin/main'.
+2026-06-25T19:44:51.4540379Z ##[endgroup]
+2026-06-25T19:44:51.4580329Z [command]/usr/bin/git log -1 --format=%H
+2026-06-25T19:44:51.4610255Z 26245c36001bd20f1828b0f6909b000d528f20b3

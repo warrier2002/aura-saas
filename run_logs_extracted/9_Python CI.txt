@@ -1,0 +1,196 @@
+﻿2026-06-25T19:44:27.0305741Z Current runner version: '2.335.1'
+2026-06-25T19:44:27.0342832Z ##[group]Runner Image Provisioner
+2026-06-25T19:44:27.0344228Z Hosted Compute Agent
+2026-06-25T19:44:27.0345320Z Version: 20260611.554
+2026-06-25T19:44:27.0346623Z Commit: 5e0782fdc9014723d3be820dd114dd31555c2bd1
+2026-06-25T19:44:27.0347833Z Build Date: 2026-06-11T21:40:46Z
+2026-06-25T19:44:27.0349178Z Worker ID: {7d809752-e994-46bd-a971-b89bb31dd206}
+2026-06-25T19:44:27.0350461Z Azure Region: centralus
+2026-06-25T19:44:27.0351717Z ##[endgroup]
+2026-06-25T19:44:27.0354906Z ##[group]Operating System
+2026-06-25T19:44:27.0355947Z Ubuntu
+2026-06-25T19:44:27.0356944Z 24.04.4
+2026-06-25T19:44:27.0357801Z LTS
+2026-06-25T19:44:27.0358683Z ##[endgroup]
+2026-06-25T19:44:27.0359856Z ##[group]Runner Image
+2026-06-25T19:44:27.0360891Z Image: ubuntu-24.04
+2026-06-25T19:44:27.0362413Z Version: 20260622.220.1
+2026-06-25T19:44:27.0364718Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260622.220/images/ubuntu/Ubuntu2404-Readme.md
+2026-06-25T19:44:27.0367594Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260622.220
+2026-06-25T19:44:27.0369291Z ##[endgroup]
+2026-06-25T19:44:27.0371738Z ##[group]GITHUB_TOKEN Permissions
+2026-06-25T19:44:27.0374692Z Contents: read
+2026-06-25T19:44:27.0375827Z Metadata: read
+2026-06-25T19:44:27.0376882Z Packages: read
+2026-06-25T19:44:27.0377901Z ##[endgroup]
+2026-06-25T19:44:27.0381071Z Secret source: Actions
+2026-06-25T19:44:27.0382960Z Prepare workflow directory
+2026-06-25T19:44:27.0765225Z Prepare all required actions
+2026-06-25T19:44:27.0804790Z Getting action download info
+2026-06-25T19:44:27.3349589Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+2026-06-25T19:44:27.4193714Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+2026-06-25T19:44:27.5961976Z Complete job name: Python CI
+2026-06-25T19:44:27.6706843Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:44:27.6716140Z ##[group]Run actions/checkout@v4
+2026-06-25T19:44:27.6716919Z with:
+2026-06-25T19:44:27.6717395Z   repository: warrier2002/aura-saas
+2026-06-25T19:44:27.6722166Z   token: ***
+2026-06-25T19:44:27.6722632Z   ssh-strict: true
+2026-06-25T19:44:27.6723102Z   ssh-user: git
+2026-06-25T19:44:27.6723589Z   persist-credentials: true
+2026-06-25T19:44:27.6724114Z   clean: true
+2026-06-25T19:44:27.6724603Z   sparse-checkout-cone-mode: true
+2026-06-25T19:44:27.6725160Z   fetch-depth: 1
+2026-06-25T19:44:27.6725631Z   fetch-tags: false
+2026-06-25T19:44:27.6726105Z   show-progress: true
+2026-06-25T19:44:27.6726585Z   lfs: false
+2026-06-25T19:44:27.6727064Z   submodules: false
+2026-06-25T19:44:27.6727543Z   set-safe-directory: true
+2026-06-25T19:44:27.6728330Z ##[endgroup]
+2026-06-25T19:44:27.7710523Z Syncing repository: warrier2002/aura-saas
+2026-06-25T19:44:27.7712746Z ##[group]Getting Git version info
+2026-06-25T19:44:27.7713535Z Working directory is '/home/runner/work/aura-saas/aura-saas'
+2026-06-25T19:44:27.7714574Z [command]/usr/bin/git version
+2026-06-25T19:44:27.7776827Z git version 2.54.0
+2026-06-25T19:44:27.7829405Z ##[endgroup]
+2026-06-25T19:44:27.7843357Z Temporarily overriding HOME='/home/runner/work/_temp/06438ffb-1a27-4e64-93cf-3f69f7938a0c' before making global git config changes
+2026-06-25T19:44:27.7845631Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-25T19:44:27.7848366Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aura-saas/aura-saas
+2026-06-25T19:44:27.7893400Z Deleting the contents of '/home/runner/work/aura-saas/aura-saas'
+2026-06-25T19:44:27.7897799Z ##[group]Initializing the repository
+2026-06-25T19:44:27.7902121Z [command]/usr/bin/git init /home/runner/work/aura-saas/aura-saas
+2026-06-25T19:44:27.8003876Z hint: Using 'master' as the name for the initial branch. This default branch name
+2026-06-25T19:44:27.8006003Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+2026-06-25T19:44:27.8008152Z hint: to use in all of your new repositories, which will suppress this warning,
+2026-06-25T19:44:27.8009741Z hint: call:
+2026-06-25T19:44:27.8010840Z hint:
+2026-06-25T19:44:27.8012083Z hint: 	git config --global init.defaultBranch <name>
+2026-06-25T19:44:27.8013356Z hint:
+2026-06-25T19:44:27.8014540Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+2026-06-25T19:44:27.8016495Z hint: 'development'. The just-created branch can be renamed via this command:
+2026-06-25T19:44:27.8018049Z hint:
+2026-06-25T19:44:27.8018823Z hint: 	git branch -m <name>
+2026-06-25T19:44:27.8019726Z hint:
+2026-06-25T19:44:27.8020660Z hint: Disable this message with "git config set advice.defaultBranchName false"
+2026-06-25T19:44:27.8022012Z Initialized empty Git repository in /home/runner/work/aura-saas/aura-saas/.git/
+2026-06-25T19:44:27.8023814Z [command]/usr/bin/git remote add origin https://github.com/warrier2002/aura-saas
+2026-06-25T19:44:27.8061400Z ##[endgroup]
+2026-06-25T19:44:27.8062230Z ##[group]Disabling automatic garbage collection
+2026-06-25T19:44:27.8066598Z [command]/usr/bin/git config --local gc.auto 0
+2026-06-25T19:44:27.8094804Z ##[endgroup]
+2026-06-25T19:44:27.8095555Z ##[group]Setting up auth
+2026-06-25T19:44:27.8101375Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-25T19:44:27.8133719Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-25T19:44:27.8468248Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-25T19:44:27.8499553Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-25T19:44:27.8719763Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-25T19:44:27.8750044Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-25T19:44:27.8971928Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+2026-06-25T19:44:27.9006283Z ##[endgroup]
+2026-06-25T19:44:27.9007522Z ##[group]Fetching the repository
+2026-06-25T19:44:27.9015250Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +26245c36001bd20f1828b0f6909b000d528f20b3:refs/remotes/origin/main
+2026-06-25T19:44:28.2229249Z From https://github.com/warrier2002/aura-saas
+2026-06-25T19:44:28.2230404Z  * [new ref]         26245c36001bd20f1828b0f6909b000d528f20b3 -> origin/main
+2026-06-25T19:44:28.2265312Z ##[endgroup]
+2026-06-25T19:44:28.2273200Z ##[group]Determining the checkout info
+2026-06-25T19:44:28.2274215Z ##[endgroup]
+2026-06-25T19:44:28.2274907Z [command]/usr/bin/git sparse-checkout disable
+2026-06-25T19:44:28.2318315Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+2026-06-25T19:44:28.2346473Z ##[group]Checking out the ref
+2026-06-25T19:44:28.2350143Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+2026-06-25T19:44:28.2437639Z Switched to a new branch 'main'
+2026-06-25T19:44:28.2441992Z branch 'main' set up to track 'origin/main'.
+2026-06-25T19:44:28.2448684Z ##[endgroup]
+2026-06-25T19:44:28.2492936Z [command]/usr/bin/git log -1 --format=%H
+2026-06-25T19:44:28.2515683Z 26245c36001bd20f1828b0f6909b000d528f20b3
+2026-06-25T19:44:28.2799068Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:44:28.2802487Z ##[group]Run actions/setup-python@v5
+2026-06-25T19:44:28.2803114Z with:
+2026-06-25T19:44:28.2803592Z   python-version: 3.12
+2026-06-25T19:44:28.2804106Z   check-latest: false
+2026-06-25T19:44:28.2808743Z   token: ***
+2026-06-25T19:44:28.2809236Z   update-environment: true
+2026-06-25T19:44:28.2809783Z   allow-prereleases: false
+2026-06-25T19:44:28.2810323Z   freethreaded: false
+2026-06-25T19:44:28.2810822Z ##[endgroup]
+2026-06-25T19:44:28.4162039Z ##[group]Installed versions
+2026-06-25T19:44:28.5293864Z (node:2272) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-06-25T19:44:28.5297394Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-06-25T19:44:28.5299540Z Successfully set up CPython (3.12.13)
+2026-06-25T19:44:28.5302189Z ##[endgroup]
+2026-06-25T19:44:28.5509580Z ##[group]Run python -m pip install --upgrade pip
+2026-06-25T19:44:28.5511520Z [36;1mpython -m pip install --upgrade pip[0m
+2026-06-25T19:44:28.5513076Z [36;1mpip install -r requirements.txt flake8[0m
+2026-06-25T19:44:28.5515086Z [36;1mflake8 assignment.py --count --select=E9,F63,F7,F82 --show-source --statistics[0m
+2026-06-25T19:44:28.5517502Z [36;1mpython -c "import py_compile; py_compile.compile('assignment.py')"[0m
+2026-06-25T19:44:28.6140789Z shell: /usr/bin/bash -e {0}
+2026-06-25T19:44:28.6142422Z env:
+2026-06-25T19:44:28.6143822Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+2026-06-25T19:44:28.6145896Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+2026-06-25T19:44:28.6147964Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+2026-06-25T19:44:28.6150038Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+2026-06-25T19:44:28.6152076Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+2026-06-25T19:44:28.6154059Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+2026-06-25T19:44:28.6155587Z ##[endgroup]
+2026-06-25T19:44:29.5746092Z Requirement already satisfied: pip in /opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/site-packages (26.1.2)
+2026-06-25T19:44:30.3427800Z Collecting flake8
+2026-06-25T19:44:30.4441605Z   Downloading flake8-7.3.0-py2.py3-none-any.whl.metadata (3.8 kB)
+2026-06-25T19:44:30.4732261Z Collecting Flask>=3.0.0 (from -r requirements.txt (line 1))
+2026-06-25T19:44:30.4889453Z   Downloading flask-3.1.3-py3-none-any.whl.metadata (3.2 kB)
+2026-06-25T19:44:30.5194476Z Collecting PyJWT>=2.8.0 (from -r requirements.txt (line 2))
+2026-06-25T19:44:30.5350678Z   Downloading pyjwt-2.13.0-py3-none-any.whl.metadata (3.4 kB)
+2026-06-25T19:44:30.5690667Z Collecting werkzeug>=3.0.0 (from -r requirements.txt (line 3))
+2026-06-25T19:44:30.5848930Z   Downloading werkzeug-3.1.8-py3-none-any.whl.metadata (4.0 kB)
+2026-06-25T19:44:30.6083083Z Collecting mccabe<0.8.0,>=0.7.0 (from flake8)
+2026-06-25T19:44:30.6240302Z   Downloading mccabe-0.7.0-py2.py3-none-any.whl.metadata (5.0 kB)
+2026-06-25T19:44:30.6489736Z Collecting pycodestyle<2.15.0,>=2.14.0 (from flake8)
+2026-06-25T19:44:30.6644897Z   Downloading pycodestyle-2.14.0-py2.py3-none-any.whl.metadata (4.5 kB)
+2026-06-25T19:44:30.6903285Z Collecting pyflakes<3.5.0,>=3.4.0 (from flake8)
+2026-06-25T19:44:30.7058777Z   Downloading pyflakes-3.4.0-py2.py3-none-any.whl.metadata (3.5 kB)
+2026-06-25T19:44:30.7300480Z Collecting blinker>=1.9.0 (from Flask>=3.0.0->-r requirements.txt (line 1))
+2026-06-25T19:44:30.7469883Z   Downloading blinker-1.9.0-py3-none-any.whl.metadata (1.6 kB)
+2026-06-25T19:44:30.7775148Z Collecting click>=8.1.3 (from Flask>=3.0.0->-r requirements.txt (line 1))
+2026-06-25T19:44:30.7930330Z   Downloading click-8.4.2-py3-none-any.whl.metadata (2.6 kB)
+2026-06-25T19:44:30.8159373Z Collecting itsdangerous>=2.2.0 (from Flask>=3.0.0->-r requirements.txt (line 1))
+2026-06-25T19:44:30.8312673Z   Downloading itsdangerous-2.2.0-py3-none-any.whl.metadata (1.9 kB)
+2026-06-25T19:44:30.8580782Z Collecting jinja2>=3.1.2 (from Flask>=3.0.0->-r requirements.txt (line 1))
+2026-06-25T19:44:30.8734437Z   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+2026-06-25T19:44:30.9667372Z Collecting markupsafe>=2.1.1 (from Flask>=3.0.0->-r requirements.txt (line 1))
+2026-06-25T19:44:30.9824421Z   Downloading markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+2026-06-25T19:44:31.0049406Z Downloading flake8-7.3.0-py2.py3-none-any.whl (57 kB)
+2026-06-25T19:44:31.0391271Z Downloading mccabe-0.7.0-py2.py3-none-any.whl (7.3 kB)
+2026-06-25T19:44:31.0567127Z Downloading pycodestyle-2.14.0-py2.py3-none-any.whl (31 kB)
+2026-06-25T19:44:31.0749123Z Downloading pyflakes-3.4.0-py2.py3-none-any.whl (63 kB)
+2026-06-25T19:44:31.0958042Z Downloading flask-3.1.3-py3-none-any.whl (103 kB)
+2026-06-25T19:44:31.1276422Z Downloading pyjwt-2.13.0-py3-none-any.whl (31 kB)
+2026-06-25T19:44:31.1465587Z Downloading werkzeug-3.1.8-py3-none-any.whl (226 kB)
+2026-06-25T19:44:31.1847638Z Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+2026-06-25T19:44:31.2026530Z Downloading click-8.4.2-py3-none-any.whl (119 kB)
+2026-06-25T19:44:31.2207359Z Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+2026-06-25T19:44:31.2383636Z Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+2026-06-25T19:44:31.2577018Z Downloading markupsafe-3.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+2026-06-25T19:44:31.2883341Z Installing collected packages: PyJWT, pyflakes, pycodestyle, mccabe, markupsafe, itsdangerous, click, blinker, werkzeug, jinja2, flake8, Flask
+2026-06-25T19:44:31.8135072Z 
+2026-06-25T19:44:31.8153559Z Successfully installed Flask-3.1.3 PyJWT-2.13.0 blinker-1.9.0 click-8.4.2 flake8-7.3.0 itsdangerous-2.2.0 jinja2-3.1.6 markupsafe-3.0.3 mccabe-0.7.0 pycodestyle-2.14.0 pyflakes-3.4.0 werkzeug-3.1.8
+2026-06-25T19:44:32.1150094Z 0
+2026-06-25T19:44:32.1716329Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:44:32.1717621Z Post job cleanup.
+2026-06-25T19:44:32.2869164Z (node:2331) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+2026-06-25T19:44:32.2870197Z (Use `node --trace-deprecation ...` to show where the warning was created)
+2026-06-25T19:44:32.3036125Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-25T19:44:32.3037375Z Post job cleanup.
+2026-06-25T19:44:32.3876119Z [command]/usr/bin/git version
+2026-06-25T19:44:32.3943993Z git version 2.54.0
+2026-06-25T19:44:32.3981623Z Temporarily overriding HOME='/home/runner/work/_temp/17765c25-4315-487d-8ede-69c0a9e79c7b' before making global git config changes
+2026-06-25T19:44:32.3983435Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-25T19:44:32.3988169Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aura-saas/aura-saas
+2026-06-25T19:44:32.4024628Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-25T19:44:32.4056543Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-25T19:44:32.4280152Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-25T19:44:32.4304946Z http.https://github.com/.extraheader
+2026-06-25T19:44:32.4315523Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-06-25T19:44:32.4347177Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-25T19:44:32.4564988Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-25T19:44:32.4593746Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-25T19:44:32.4936501Z Cleaning up orphan processes
+2026-06-25T19:44:32.5235057Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

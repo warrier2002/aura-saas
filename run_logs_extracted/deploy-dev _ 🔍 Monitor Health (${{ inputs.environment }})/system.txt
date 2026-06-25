@@ -1,0 +1,6 @@
+2026-06-25T19:48:18.0350000Z Evaluating deploy-dev.if
+2026-06-25T19:48:18.0350000Z Evaluating: success()
+2026-06-25T19:48:18.0350000Z Result: true
+2026-06-25T19:48:18.0350000Z Evaluating deploy-dev.monitor.if
+2026-06-25T19:48:18.0350000Z Evaluating: success()
+2026-06-25T19:48:18.0350000Z Result: false

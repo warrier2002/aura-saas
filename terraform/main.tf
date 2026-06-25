@@ -247,7 +247,7 @@ data "aws_ssm_parameter" "al2023" {
 
 resource "aws_instance" "crm_server" {
   ami                    = data.aws_ssm_parameter.al2023.value
-  instance_type          = "t2.micro" # Free tier eligible
+  instance_type          = "t3.small" # 2GB RAM to support shared K3s, 3 envs
   subnet_id              = aws_subnet.public.id
   key_name               = aws_key_pair.deploy_key.key_name
   vpc_security_group_ids = [aws_security_group.ec2.id]

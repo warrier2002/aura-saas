@@ -1,0 +1,5 @@
+﻿2026-06-25T19:44:27.7538458Z ##[group]Run if ! grep -q 'login-view' index.html; then echo "Missing login view"; exit 1; fi
+2026-06-25T19:44:27.7541273Z [36;1mif ! grep -q 'login-view' index.html; then echo "Missing login view"; exit 1; fi[0m
+2026-06-25T19:44:27.7544075Z [36;1mif ! grep -q 'Authorization' index.html; then echo "Missing Authorization header"; exit 1; fi[0m
+2026-06-25T19:44:27.7715704Z shell: /usr/bin/bash -e {0}
+2026-06-25T19:44:27.7717061Z ##[endgroup]

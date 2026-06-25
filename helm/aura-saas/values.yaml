@@ -3,7 +3,7 @@ backend:
     repository: ghcr.io/YOUR_ORG/aura-saas-backend
     tag: latest
     pullPolicy: Always
-  replicas: 2
+  replicas: 1
   resources:
     requests:
       cpu: "100m"
@@ -17,7 +17,7 @@ frontend:
     repository: ghcr.io/YOUR_ORG/aura-saas-frontend
     tag: latest
     pullPolicy: Always
-  replicas: 2
+  replicas: 1
   resources:
     requests:
       cpu: "50m"
