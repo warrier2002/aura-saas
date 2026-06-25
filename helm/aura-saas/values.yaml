@@ -36,3 +36,8 @@ jwtSecret: ""
 
 ingress:
   host: ""
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
