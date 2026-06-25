@@ -116,13 +116,15 @@ jobs:
           echo "::add-mask::$DB_PASSWORD"
           echo "DB_PASSWORD=$DB_PASSWORD" >> $GITHUB_ENV
           
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "RDS_ENDPOINT=$RDS_ENDPOINT" >> $GITHUB_ENV
+          
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           
       - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          RDS_ENDPOINT="${{ needs.provision.outputs.rds_endpoint }}"
           DB_NAME="${{ needs.provision.outputs.db_name }}"
           DB_USER="${{ needs.provision.outputs.db_username }}"
           
@@ -169,13 +171,15 @@ jobs:
           echo "::add-mask::$JWT_SECRET"
           echo "JWT_SECRET=$JWT_SECRET" >> $GITHUB_ENV
           
+          RDS_ENDPOINT=$(terraform output -raw rds_endpoint)
+          echo "RDS_ENDPOINT=$RDS_ENDPOINT" >> $GITHUB_ENV
+          
           mkdir -p ~/.ssh
           echo "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
       - run: |
           EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          RDS_ENDPOINT="${{ needs.provision.outputs.rds_endpoint }}"
           DB_NAME="${{ needs.provision.outputs.db_name }}"
           DB_USER="${{ needs.provision.outputs.db_username }}"
           IMAGE_TAG="${{ inputs.image_tag }}"
