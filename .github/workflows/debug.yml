@@ -1,0 +1,38 @@
+name: Debug EC2 K8s
+on: workflow_dispatch
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - uses: hashicorp/setup-terraform@v3
+      - name: Debug Commands
+        working-directory: terraform
+        run: |
+          terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
+          terraform workspace select dev > /dev/null 2>&1 || true
+          EC2_IP=$(terraform output -raw ec2_public_ip)
+          SSH_KEY=$(terraform output -raw ssh_private_key)
+          
+          mkdir -p ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          
+          ssh-keyscan -H "$EC2_IP" >> ~/.ssh/known_hosts 2>/dev/null || true
+          
+          echo "==== K3S SYSTEM PODS ===="
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "kubectl get pods -n kube-system"
+          
+          echo "==== ALL RESOURCES IN CRM-DEV ===="
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "kubectl get all -n crm-dev"
+          
+          echo "==== HELM STATUS ===="
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "export KUBECONFIG=/home/ec2-user/.kube/config && helm list -A && helm status aura-saas -n crm-dev"
+          
+          echo "==== FILES IN HELM DIR ===="
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ec2-user@"$EC2_IP" "ls -la ~/helm/aura-saas/templates"
