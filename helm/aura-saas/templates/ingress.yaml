@@ -23,7 +23,7 @@ spec:
             name: crm-backend
             port:
               number: 3001
-      - path: {{ $prefix }}(/|$)(.*)
+      - path: {{ $prefix }}/(.*)
         pathType: ImplementationSpecific
         backend:
           service:
