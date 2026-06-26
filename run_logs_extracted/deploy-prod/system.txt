@@ -1,4 +1,0 @@
-2026-06-25T19:48:18.0450000Z Evaluating deploy-prod.if
-2026-06-25T19:48:18.0450000Z Evaluating: (success() && ((github.ref == 'refs/heads/main')))
-2026-06-25T19:48:18.0450000Z Expanded: (false && (github.ref == 'refs/heads/main'))
-2026-06-25T19:48:18.0450000Z Result: false

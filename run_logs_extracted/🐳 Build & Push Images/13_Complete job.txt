@@ -1,4 +1,0 @@
-﻿2026-06-25T19:45:18.0345415Z Evaluate and set job outputs
-2026-06-25T19:45:18.0351328Z Set output 'image_tag'
-2026-06-25T19:45:18.0353622Z Cleaning up orphan processes
-2026-06-25T19:45:18.0619003Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, docker/build-push-action@v5, docker/login-action@v3. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -1,4 +1,0 @@
-﻿2026-06-25T19:52:44.6159849Z ##[group]Run echo "tag=$(echo $GITHUB_SHA | head -c 7)" >> $GITHUB_OUTPUT
-2026-06-25T19:52:44.6161813Z [36;1mecho "tag=$(echo $GITHUB_SHA | head -c 7)" >> $GITHUB_OUTPUT[0m
-2026-06-25T19:52:44.6311031Z shell: /usr/bin/bash -e {0}
-2026-06-25T19:52:44.6311985Z ##[endgroup]
