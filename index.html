@@ -244,6 +244,7 @@
         th, td {
             padding: 0.85rem 1rem;
             border-bottom: 1px solid var(--border);
+            vertical-align: middle;
         }
 
         th {
@@ -268,6 +269,182 @@
             .two-col {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Dashboard Layout with Sidebar */
+        .dashboard-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-layout {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            border-right: 1px solid var(--border);
+            padding-right: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                flex-direction: row;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                padding-right: 0;
+                padding-bottom: 1rem;
+                overflow-x: auto;
+            }
+        }
+
+        .sidebar-tab {
+            width: 100%;
+            text-align: left;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-tab:hover {
+            background: #F5F0EB;
+            color: var(--text-main);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .sidebar-tab.active {
+            background: rgba(232, 98, 10, 0.08);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Content Area Panels */
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        /* Autoscaling status panel style */
+        .hpa-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .hpa-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .hpa-metric-card {
+            background: #FAF8F5;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .hpa-metric-card .label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .hpa-metric-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .pods-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .pod-pill {
+            background: #FAF8F5;
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: pulse-grow 2s infinite ease-in-out;
+        }
+
+        .pod-pill.active {
+            background: #E8F5E9;
+            border-color: #C8E6C9;
+            color: #2E7D32;
+        }
+
+        .pod-icon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #7A7A8C;
+        }
+
+        .pod-pill.active .pod-icon {
+            background: #4CAF50;
+            box-shadow: 0 0 8px #4CAF50;
+        }
+
+        @keyframes pulse-grow {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        .btn-delete {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--border);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            width: auto;
+            transition: all 0.2s;
+        }
+        .btn-delete:hover {
+            background: var(--danger-bg);
+            border-color: #FFCDD2;
+            color: var(--danger);
+            transform: none;
+            box-shadow: none;
         }
 
         /* Environment Badge */
@@ -376,39 +553,148 @@
 
             <div id="dash-alert" class="alert"></div>
 
-            <div class="two-col">
-                <!-- Add Customer Form -->
-                <div>
-                    <h3 style="margin-bottom:1rem;">Add Customer</h3>
-                    <form id="customer-form">
-                        <div class="form-group">
-                            <input type="text" id="cust-name" placeholder="Full Name" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="email" id="cust-email" placeholder="Email Address">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" id="cust-company" placeholder="Company Name">
-                        </div>
-                        <button type="submit">Add to CRM</button>
-                    </form>
+            <div class="dashboard-layout">
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <button class="sidebar-tab active" id="tab-btn-customers" onclick="switchTab('customers')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Customers
+                    </button>
+                    <button class="sidebar-tab" id="tab-btn-contacts" onclick="switchTab('contacts')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        Contacts
+                    </button>
+                    <button class="sidebar-tab" id="tab-btn-autoscaling" onclick="switchTab('autoscaling')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                        Autoscaling Status
+                    </button>
                 </div>
 
-                <!-- Customer List -->
-                <div>
-                    <h3 style="margin-bottom:1rem;">Tenant Directory</h3>
-                    <div class="table-container">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Company</th>
-                                </tr>
-                            </thead>
-                            <tbody id="customer-list">
-                                <!-- Populated by JS -->
-                            </tbody>
-                        </table>
+                <!-- Content Area -->
+                <div class="content-area">
+                    <!-- CUSTOMERS PANEL -->
+                    <div id="panel-customers" class="tab-panel active">
+                        <div class="two-col">
+                            <!-- Add Customer Form -->
+                            <div>
+                                <h3 style="margin-bottom:1rem;">Add Customer</h3>
+                                <form id="customer-form">
+                                    <div class="form-group">
+                                        <input type="text" id="cust-name" placeholder="Full Name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="email" id="cust-email" placeholder="Email Address">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="cust-company" placeholder="Company Name">
+                                    </div>
+                                    <button type="submit">Add to CRM</button>
+                                </form>
+                            </div>
+
+                            <!-- Customer List -->
+                            <div>
+                                <h3 style="margin-bottom:1rem;">Tenant Directory</h3>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Company</th>
+                                                <th style="width:70px; text-align:center;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="customer-list">
+                                            <!-- Populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTACTS PANEL -->
+                    <div id="panel-contacts" class="tab-panel">
+                        <div class="two-col">
+                            <!-- Add Contact Form -->
+                            <div>
+                                <h3 style="margin-bottom:1rem;">Add Contact</h3>
+                                <form id="contact-form">
+                                    <div class="form-group">
+                                        <label>Associate Customer</label>
+                                        <select id="contact-customer-id" required>
+                                            <option value="">Select a Customer...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="contact-name" placeholder="Full Name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="email" id="contact-email" placeholder="Email Address">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="contact-phone" placeholder="Phone Number">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="contact-role" placeholder="Role (e.g. Manager, CTO)">
+                                    </div>
+                                    <button type="submit">Add Contact</button>
+                                </form>
+                            </div>
+
+                            <!-- Contacts List -->
+                            <div>
+                                <h3 style="margin-bottom:1rem;">Contacts Directory</h3>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Contact</th>
+                                                <th>Customer Assoc.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="contacts-list">
+                                            <!-- Populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AUTOSCALING PANEL -->
+                    <div id="panel-autoscaling" class="tab-panel">
+                        <h3 style="margin-bottom:1.5rem;">Live HPA Replica Status</h3>
+                        
+                        <div class="hpa-card">
+                            <div class="hpa-info-grid">
+                                <div class="hpa-metric-card">
+                                    <div class="label">Ready / Total Replicas</div>
+                                    <div class="value" id="hpa-replica-count">1 / 1</div>
+                                </div>
+                                <div class="hpa-metric-card">
+                                    <div class="label">Autoscaler Mode</div>
+                                    <div class="value" id="hpa-mode">Local (Mock)</div>
+                                </div>
+                                <div class="hpa-metric-card">
+                                    <div class="label">Target Threshold</div>
+                                    <div class="value">CPU > 70%</div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top:2rem;">
+                                <h4 style="font-size:0.9rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:1rem; font-weight:600; letter-spacing:0.05em;">Active Pod Visualizer</h4>
+                                <div class="pods-container" id="pods-container">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top:2.5rem; padding:1.5rem; background:#FAF8F5; border:1px dashed var(--border); border-radius:10px;">
+                                <h4 style="font-size:0.9rem; color:var(--primary); margin-bottom:0.5rem;">Demonstrate HPA Scaling</h4>
+                                <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">To trigger autoscaling, you can run the load simulator script on the server, which sends continuous concurrent requests to generate CPU stress. The Horizontal Pod Autoscaler (HPA) will automatically spin up new replicas (up to 10) once the load exceeds 70% CPU.</p>
+                                <code style="display:block; margin-top:1rem; padding:0.6rem; background:#FFFFFF; border:1px solid var(--border); border-radius:6px; font-size:0.75rem; font-family:monospace; color:var(--text-main); overflow-x:auto;">./scripts/simulate_load.sh -u http://aurasaas.duckdns.org/api/customers -c 15 -d 60</code>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -489,6 +775,26 @@
             document.getElementById('password').value = '';
         }
 
+        // --- Tab Switching Logic ---
+        let hpaInterval = null;
+
+        function switchTab(tabId) {
+            // Update active button state
+            document.querySelectorAll('.sidebar-tab').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Update active panel state
+            document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+            const activePanel = document.getElementById(`panel-${tabId}`);
+            if (activePanel) activePanel.classList.add('active');
+
+            // Trigger specific actions when switching tabs
+            if (tabId === 'autoscaling') {
+                fetchHPAStatus();
+            }
+        }
+
         // --- Dashboard Logic ---
         async function showDashboard() {
             loginView.style.display = 'none';
@@ -498,8 +804,28 @@
             document.getElementById('user-info').textContent = `${user.name} (${user.tenant_id.replace('_', ' ').toUpperCase()})`;
 
             await fetchCustomers();
+            await fetchContacts();
+
+            // Start polling HPA Status
+            if (hpaInterval) clearInterval(hpaInterval);
+            fetchHPAStatus();
+            hpaInterval = setInterval(fetchHPAStatus, 5000);
         }
 
+        function logout() {
+            if (hpaInterval) {
+                clearInterval(hpaInterval);
+                hpaInterval = null;
+            }
+            sessionStorage.removeItem('aura_token');
+            sessionStorage.removeItem('aura_user');
+            loginView.style.display = 'block';
+            dashboardView.style.display = 'none';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        }
+
+        // --- Customer Logic ---
         async function fetchCustomers() {
             try {
                 const res = await fetch(`${API_BASE}/customers`, { headers: getAuthHeader() });
@@ -511,12 +837,23 @@
                 const tbody = document.getElementById('customer-list');
                 tbody.innerHTML = '';
 
+                // Also populate the Customer drop-down select inside Contacts form
+                const select = document.getElementById('contact-customer-id');
+                select.innerHTML = '<option value="">Select a Customer...</option>';
+
                 if (!data.customers || data.customers.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#7A7A8C;">No customers found.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#7A7A8C;">No customers found.</td></tr>`;
                     return;
                 }
 
                 data.customers.forEach(c => {
+                    // Populate select list
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.name;
+                    select.appendChild(opt);
+
+                    // Populate table
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td>
@@ -524,6 +861,9 @@
                             <div style="font-size:0.8rem; color:#7A7A8C;">${escapeHTML(c.email || '—')}</div>
                         </td>
                         <td>${escapeHTML(c.company || '—')}</td>
+                        <td style="text-align:center;">
+                            <button class="btn-delete" onclick="deleteCustomer(${c.id}, '${escapeHTML(c.name)}')">Delete</button>
+                        </td>
                     `;
                     tbody.appendChild(tr);
                 });
@@ -556,6 +896,125 @@
                 showAlert(dashAlert, err.message, 'error');
             }
         });
+
+        async function deleteCustomer(id, name) {
+            if (!confirm(`Are you sure you want to delete customer "${name}"?\nWARNING: All associated contacts will also be deleted.`)) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/customers/${id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeader()
+                });
+
+                if (res.status === 401) return logout();
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                showAlert(dashAlert, 'Customer deleted successfully', 'success');
+                await fetchCustomers();
+                await fetchContacts();
+            } catch (err) {
+                showAlert(dashAlert, err.message, 'error');
+            }
+        }
+
+        // --- Contacts Logic ---
+        async function fetchContacts() {
+            try {
+                const res = await fetch(`${API_BASE}/contacts`, { headers: getAuthHeader() });
+                if (res.status === 401) return logout();
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                const tbody = document.getElementById('contacts-list');
+                tbody.innerHTML = '';
+
+                if (!data.contacts || data.contacts.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#7A7A8C;">No contacts found.</td></tr>`;
+                    return;
+                }
+
+                data.contacts.forEach(c => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>
+                            <div style="font-weight:600; color:#1A1A2E;">${escapeHTML(c.name)}</div>
+                            <div style="font-size:0.8rem; color:#7A7A8C;">${escapeHTML(c.email || '—')} &bull; ${escapeHTML(c.phone || '—')}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600; color:#1A1A2E;">${escapeHTML(c.customer_name || 'Unassigned')}</div>
+                            <div style="font-size:0.8rem; color:#7A7A8C;">Role: ${escapeHTML(c.role || '—')}</div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (err) {
+                showAlert(dashAlert, 'Failed to fetch contacts directory', 'error');
+            }
+        }
+
+        document.getElementById('contact-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const customer_id = document.getElementById('contact-customer-id').value;
+            const name = document.getElementById('contact-name').value;
+            const email = document.getElementById('contact-email').value;
+            const phone = document.getElementById('contact-phone').value;
+            const role = document.getElementById('contact-role').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/contacts`, {
+                    method: 'POST',
+                    headers: getAuthHeader(),
+                    body: JSON.stringify({ customer_id, name, email, phone, role })
+                });
+
+                if (res.status === 401) return logout();
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                showAlert(dashAlert, 'Contact added successfully', 'success');
+                document.getElementById('contact-form').reset();
+                await fetchContacts();
+            } catch (err) {
+                showAlert(dashAlert, err.message, 'error');
+            }
+        });
+
+        // --- HPA Scaling Logic ---
+        async function fetchHPAStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/hpa-status`);
+                if (!res.ok) throw new Error('HPA fetch failed');
+                const data = await res.json();
+
+                // Render metrics
+                document.getElementById('hpa-replica-count').textContent = `${data.readyReplicas} / ${data.replicas}`;
+                
+                let modeText = 'Local (Mock)';
+                if (data.mode === 'k8s') modeText = 'Kubernetes Active';
+                else if (data.mode.startsWith('k8s-error')) modeText = 'K8s (RBAC Restricted)';
+                document.getElementById('hpa-mode').textContent = modeText;
+
+                // Render pod visualizer pills
+                const container = document.getElementById('pods-container');
+                container.innerHTML = '';
+
+                for (let i = 1; i <= data.replicas; i++) {
+                    const pod = document.createElement('div');
+                    pod.className = `pod-pill ${i <= data.readyReplicas ? 'active' : ''}`;
+                    pod.innerHTML = `
+                        <span class="pod-icon"></span>
+                        aura-saas-backend-${i}
+                    `;
+                    container.appendChild(pod);
+                }
+            } catch (err) {
+                console.error('HPA polling error:', err);
+            }
+        }
 
         // XSS Prevention helper
         function escapeHTML(str) {

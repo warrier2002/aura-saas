@@ -186,7 +186,147 @@ app.post('/customers', requireAuth, async (req, res) => {
   }
 });
 
+// DELETE /customers/:id — Protected.
+app.delete('/customers/:id', requireAuth, async (req, res) => {
+  const tenant_id = req.tokenData.tenant;
+  const customerId = parseInt(req.params.id, 10);
+
+  if (isNaN(customerId)) {
+    return res.status(400).json({ error: 'Invalid customer ID.' });
+  }
+
+  try {
+    const result = await queryTenant(
+      tenant_id,
+      'DELETE FROM customers WHERE id = $1 RETURNING id',
+      [customerId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Customer not found.' });
+    }
+    return res.json({ message: 'Customer and all associated contacts deleted successfully.' });
+  } catch (err) {
+    console.error('DB error on delete_customer:', err.message);
+    return res.status(500).json({ error: 'Failed to delete customer.' });
+  }
+});
+
+// GET /contacts — Protected.
+app.get('/contacts', requireAuth, async (req, res) => {
+  const tenant_id = req.tokenData.tenant;
+
+  try {
+    const result = await queryTenant(
+      tenant_id,
+      `SELECT c.id, c.name, c.email, c.phone, c.role, cust.name as customer_name 
+       FROM contacts c 
+       LEFT JOIN customers cust ON c.customer_id = cust.id 
+       ORDER BY c.id DESC`,
+      []
+    );
+    return res.json({ contacts: result.rows });
+  } catch (err) {
+    console.error('DB error on get_contacts:', err.message);
+    return res.status(500).json({ error: 'Failed to fetch contacts.' });
+  }
+});
+
+// POST /contacts — Protected.
+app.post('/contacts', requireAuth, async (req, res) => {
+  const tenant_id = req.tokenData.tenant;
+  const { customer_id, name, email, phone, role } = req.body;
+
+  const customerId = parseInt(customer_id, 10);
+  if (isNaN(customerId)) {
+    return res.status(400).json({ error: 'Valid Customer ID is required.' });
+  }
+  if (!name) return res.status(400).json({ error: 'Contact name is required.' });
+
+  try {
+    const result = await queryTenant(
+      tenant_id,
+      'INSERT INTO contacts (customer_id, name, email, phone, role) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email',
+      [customerId, name, email, phone, role]
+    );
+    return res.status(201).json({ message: 'Contact added successfully.', contact: result.rows[0] });
+  } catch (err) {
+    console.error('DB error on add_contact:', err.message);
+    return res.status(500).json({ error: 'Failed to add contact.' });
+  }
+});
+
+// Helper: Query Kubernetes API for active replicas
+async function getK8sReplicaCount() {
+  const tokenPath = '/var/run/secrets/kubernetes.io/serviceaccount/token';
+  const nsPath = '/var/run/secrets/kubernetes.io/serviceaccount/namespace';
+  
+  if (!fs.existsSync(tokenPath) || !fs.existsSync(nsPath)) {
+    // Fallback: local dev
+    return { replicas: 1, readyReplicas: 1, mode: 'local' };
+  }
+  
+  try {
+    const token = fs.readFileSync(tokenPath, 'utf8');
+    const namespace = fs.readFileSync(nsPath, 'utf8').trim();
+    
+    // Deployment name created by Helm (e.g. aura-saas-backend)
+    const deployName = 'aura-saas-backend';
+    const path = `/apis/apps/v1/namespaces/${namespace}/deployments/${deployName}`;
+    
+    const options = {
+      hostname: 'kubernetes.default.svc',
+      port: 443,
+      path: path,
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      rejectUnauthorized: false
+    };
+    
+    return new Promise((resolve) => {
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => {
+          if (res.statusCode === 200) {
+            try {
+              const body = JSON.parse(data);
+              resolve({
+                replicas: body.status.replicas || 1,
+                readyReplicas: body.status.readyReplicas || 0,
+                mode: 'k8s'
+              });
+            } catch (e) {
+              resolve({ replicas: 1, readyReplicas: 1, mode: 'k8s-parse-error' });
+            }
+          } else {
+            resolve({ replicas: 1, readyReplicas: 1, mode: `k8s-error-status-${res.statusCode}` });
+          }
+        });
+      });
+      req.on('error', (err) => {
+        resolve({ replicas: 1, readyReplicas: 1, mode: `k8s-error-${err.message}` });
+      });
+      req.end();
+    });
+  } catch (err) {
+    return { replicas: 1, readyReplicas: 1, mode: `k8s-exception-${err.message}` };
+  }
+}
+
+// GET /hpa-status — Public/Protected (Returns the replica scale metadata)
+app.get('/hpa-status', async (req, res) => {
+  try {
+    const status = await getK8sReplicaCount();
+    return res.json(status);
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to fetch scaling status.' });
+  }
+});
+
 // ─── Server ───────────────────────────────────────────────────────────────────
 app.listen(port, () => {
   console.log(`Secured Aura SaaS Backend listening at http://localhost:${port}`);
 });
+
