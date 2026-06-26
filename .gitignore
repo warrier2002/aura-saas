@@ -58,6 +58,7 @@ terraform/.terraform.lock.hcl
 # ─── Logs ─────────────────────────────────────────────────────────────────────
 *.log
 logs/
+*logs*
 
 # ─── Academic and Legacy ──────────────────────────────────────────────────────
 academic_docs/
