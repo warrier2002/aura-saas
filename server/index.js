@@ -4,6 +4,8 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const helmet = require('helmet');
+const fs = require('fs');
+const https = require('https');
 
 const app = express();
 const port = process.env.PORT || 3001;
