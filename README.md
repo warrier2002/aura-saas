@@ -14,7 +14,7 @@ graph TD
     Ingress --> |Route: /| FE["⚛️ Frontend Pods (React)"]
     Ingress --> |Route: /api/*| BE["🟢 Backend Pods (Node/Express)"]
     
-    subgraph K3s Cluster (EC2 t3.small)
+    subgraph K3S_CLUSTER ["K3s Cluster (EC2 t3.small)"]
         Ingress
         FE
         BE

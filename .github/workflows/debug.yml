@@ -12,10 +12,10 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       - uses: hashicorp/setup-terraform@v3
       - name: Debug Commands
-        working-directory: terraform
+        working-directory: infra/terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
-          terraform workspace select dev > /dev/null 2>&1 || true
+          terraform workspace select default > /dev/null 2>&1 || true
           EC2_IP=$(terraform output -raw ec2_public_ip)
           SSH_KEY=$(terraform output -raw ssh_private_key)
           

@@ -21,9 +21,9 @@ jobs:
           python-version: "3.12"
       - run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt flake8
-          flake8 assignment.py --count --select=E9,F63,F7,F82 --show-source --statistics
-          python -c "import py_compile; py_compile.compile('assignment.py')"
+          pip install -r legacy/requirements.txt flake8
+          flake8 legacy/assignment.py --count --select=E9,F63,F7,F82 --show-source --statistics
+          python -c "import py_compile; py_compile.compile('legacy/assignment.py')"
 
   node-ci:
     name: "Node.js CI"
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       - run: |
           if ! grep -q 'login-view' frontend/index.html; then echo "Missing login view"; exit 1; fi
-          if ! grep -q 'Authorization' frontend/index.html; then echo "Missing Authorization header"; exit 1; fi
+          if ! grep -q 'Authorization' frontend/js/app.js; then echo "Missing Authorization header"; exit 1; fi
 
   terraform-ci:
     name: "Terraform CI"
@@ -62,7 +62,7 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.7.0"
-      - working-directory: terraform
+      - working-directory: infra/terraform
         run: |
           terraform fmt -check
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"

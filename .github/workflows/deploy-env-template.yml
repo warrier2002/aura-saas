@@ -35,7 +35,7 @@ jobs:
         with:
           terraform_version: "1.7.0"
           terraform_wrapper: false
-      - working-directory: terraform
+      - working-directory: infra/terraform
         run: |
           BUCKET="aura-saas-tfstate"
           REGION="${{ secrets.AWS_REGION }}"
@@ -54,7 +54,7 @@ jobs:
           terraform apply -auto-approve -var="environment=shared" -var="aws_region=${{ secrets.AWS_REGION }}"
 
       - id: tf
-        working-directory: terraform
+        working-directory: infra/terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select default > /dev/null 2>&1 || true
@@ -105,7 +105,7 @@ jobs:
         with:
           terraform_version: "1.7.0"
           terraform_wrapper: false
-      - working-directory: terraform
+      - working-directory: infra/terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select default > /dev/null 2>&1 || true
@@ -161,7 +161,7 @@ jobs:
         with:
           terraform_version: "1.7.0"
           terraform_wrapper: false
-      - working-directory: terraform
+      - working-directory: infra/terraform
         run: |
           terraform init -backend-config="region=${{ secrets.AWS_REGION }}"
           terraform workspace select default > /dev/null 2>&1 || true
