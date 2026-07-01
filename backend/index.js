@@ -78,10 +78,11 @@ async function queryTenant(tenantId, text, params) {
 
 // ─── Input Validators ─────────────────────────────────────────────────────────
 function validateEmail(email) {
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  const trimmed = (email || '').trim().toLowerCase();
+  if (!trimmed || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
     throw new Error('Invalid email format.');
   }
-  return email.toLowerCase().trim();
+  return trimmed;
 }
 
 // ─── Auth Middleware ──────────────────────────────────────────────────────────
@@ -336,7 +337,11 @@ app.get('/hpa-status', async (req, res) => {
 });
 
 // ─── Server ───────────────────────────────────────────────────────────────────
-app.listen(port, () => {
-  console.log(`Secured Aura SaaS Backend listening at http://localhost:${port}`);
-});
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Secured Aura SaaS Backend listening at http://localhost:${port}`);
+  });
+}
+
+module.exports = { app, validateEmail };
 

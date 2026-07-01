@@ -38,6 +38,7 @@ jobs:
           npm ci
           npm audit --audit-level=high || true
           node --check index.js
+          npm test
 
   frontend-ci:
     name: "Frontend CI"
