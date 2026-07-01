@@ -29,10 +29,15 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    if (!origin) return cb(null, true);
+    // Allow any localhost/127.0.0.1 origin (with any port) for local development
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return cb(null, true);
+    }
+    if (allowedOrigins.includes(origin)) return cb(null, true);
     cb(new Error(`CORS policy: origin ${origin} not allowed.`));
   },
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
@@ -42,14 +47,17 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // ─── Database Configuration ───────────────────────────────────────────────────
 // Strict Connection Pool Configuration
+const dbHost = process.env.DB_HOST || 'localhost';
+const useSSL = process.env.DB_SSL === 'true' || (dbHost !== 'localhost' && dbHost !== '127.0.0.1');
+
 const pool = new Pool({
-  host:     process.env.DB_HOST     || 'localhost',
+  host:     dbHost,
   user:     process.env.DB_USER     || 'aura_app_user',
   password: process.env.DB_PASSWORD || 'aura_password',
   database: process.env.DB_NAME     || 'aura_db',
   port:     process.env.DB_PORT     || 5432,
-  // Ensure SSL is required for RDS
-  ssl: { rejectUnauthorized: false }
+  // Ensure SSL is required for RDS, but optional for local development
+  ssl: useSSL ? { rejectUnauthorized: false } : false
 });
 
 // Helper function to safely execute tenant-scoped queries

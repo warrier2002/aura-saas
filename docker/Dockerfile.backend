@@ -1,37 +1,22 @@
-# ==============================================================================
-# Aura SaaS Platform — Backend Dockerfile
-# ==============================================================================
-# Multi-stage build for a minimal footprint. Crucial for free-tier AWS t2.micro
-# ==============================================================================
-
-# STAGE 1: Build & Install dependencies
 FROM node:20-alpine AS builder
-
 WORKDIR /usr/src/app
 
-# Install dependencies (only production deps to save space)
 COPY server/package*.json ./
+
 RUN npm ci --only=production
 
-# Copy application source
 COPY server/index.js ./
 
-# STAGE 2: Production Image
 FROM node:20-alpine
 
-# Set node environment
 ENV NODE_ENV=production
-
-# Create a non-root user for security (Top-tier security requirement)
 RUN addgroup -S aura && adduser -S aura -G aura
+
 WORKDIR /home/aura/app
 
-# Copy from builder
 COPY --from=builder --chown=aura:aura /usr/src/app ./
 
-# Switch to non-root user
 USER aura
-
 EXPOSE 3001
 
 CMD ["node", "index.js"]
