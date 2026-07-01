@@ -1,97 +1,121 @@
-# Aura SaaS Platform — Multi-Tenant Cloud Native Architecture
+# 🚀 Aura SaaS Platform (v4.0)
 
-**Aura SaaS Platform** is a production-grade, multi-tenant Customer Relationship Management (CRM) platform that demonstrates real-world cloud-native engineering at every layer of the stack — from secure API design and containerisation, to Kubernetes orchestration, disaster recovery, and fully automated CI/CD pipelines.
+> **Secure, Multi-Tenant CRM Platform with Kubernetes (k3s), Helm, HPA, and GitOps CI/CD on AWS.**
 
-the system implements **Schema-Based Tenant Isolation** within a single PostgreSQL instance, enforced strictly on the server-side via `SET search_path` during database queries. Tenant identities are cryptographically bound to JSON Web Tokens, preventing any cross-tenant data leaks.
-
-**Key Architecture Pillars:**
-- 🔐 **Security-First Backend** — Express.js API, bcrypt password hashing, JWT HS256 auth, Helmet HTTP security headers, parameterized SQL queries, and strict CORS.
-- ☸️ **Kubernetes & Autoscaling** — Helm-managed deployments, Kubernetes Services, Ingress Controllers, and Horizontal Pod Autoscalers (HPA) that dynamically scale backend replicas from 2 to 10 pods when CPU exceeds 70%.
-- 🚀 **CI/CD Automation** — GitHub Actions for linting, testing, Docker builds (Alpine-optimised), and deployments. A fully functional `Jenkinsfile` is also included for multi-cloud pipeline portability.
-- 🌍 **Multi-Cloud Readiness & DR** — Terraform IaC guarantees zero-downtime portability to AWS, Azure, or GCP, backed by a structured Chaos Engineering and Disaster Recovery (DR) playbook.
-- 🌐 **Interactive Glassmorphism UI** — A modern, highly interactive, visually striking frontend dashboard for managing multi-tenant customer records.
-[![CI — Lint & Test](https://github.com/warrier2002/aura-saas/actions/workflows/deploy-dev.yml/badge.svg)](https://github.com/warrier2002/aura-saas/actions/workflows/deploy-dev.yml)
-[![Deploy — Build & Ship](https://github.com/warrier2002/aura-saas/actions/workflows/deploy-prod.yml/badge.svg)](https://github.com/warrier2002/aura-saas/actions/workflows/deploy-prod.yml)
+Aura SaaS is a production-ready, multi-tenant Customer Relationship Management (CRM) platform designed to showcase modern DevOps best practices, automated provisioning, container orchestration, and continuous delivery.
 
 ---
 
-## 🏗️ Architecture
+## 🗺️ System Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                 CI/CD (GitHub Actions / Jenkins)            │
-│  Linting/Testing ──► Docker Build ──► Terraform ──► Helm    │
-└─────────────────────────────────────────────────────────────┘
-                               │
-                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│                 Kubernetes Cluster (k3s/EKS)                │
-│                                                             │
-│  ┌───────────────┐     ┌─────────────────────────────────┐  │
-│  │ Nginx Ingress ├───► │ Aura Frontend (Glassmorphism) │  │
-│  │ (LoadBalancer)│     │ HPA Auto-Scaling (2-10 pods)  │  │
-│  └──────┬────────┘     └─────────────────────────────────┘  │
-│         │                                                   │
-│         │              ┌─────────────────────────────────┐  │
-│         └────────────► │ Aura Backend (Node.js)          │  │
-│                        │ HPA Auto-Scaling (2-10 pods)  │  │
-│                        └────────┬────────────────────────┘  │
-│                                 │                           │
-│                                 ▼                           │
-│                 ┌────────────────────────────────┐          │
-│                 │ PostgreSQL Database            │          │
-│                 │ ├─ Schema: tenant_a          │          │
-│                 │ ├─ Schema: tenant_b          │          │
-│                 └────────────────────────────────┘          │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    User["👤 Tenant User"] --> |HTTPS| Ingress["🚦 Nginx Ingress Controller"]
+    Ingress --> |Route: /| FE["⚛️ Frontend Pods (React)"]
+    Ingress --> |Route: /api/*| BE["🟢 Backend Pods (Node/Express)"]
+    
+    subgraph K3s Cluster (EC2 t3.small)
+        Ingress
+        FE
+        BE
+    end
+
+    BE --> |Schema Isolation| DB["🗄️ PostgreSQL (AWS RDS)"]
+    BE -.-> |JWT Auth Validation| Auth["🔐 JWT Verification Middleware"]
 ```
 
-## 🔒 Security Features
+---
 
-| Feature | Implementation |
-|---|---|
-| Tenant isolation | Database schema isolation (`SET search_path TO <tenant_id>`) |
-| Authentication | JWT HS256 — 8h expiry, roles encoded in token |
-| Password storage | `bcrypt` hashing (Cost factor 10) |
-| Input validation | Strict server-side type checking and format validation |
-| SQL Injection Guard | 100% parameterized queries via `pg` driver |
-| HTTP Security | `Helmet` integration and explicit CORS allowlist |
-| Session storage | `sessionStorage` (clears on tab close, not `localStorage`) |
-| XSS prevention | `escapeHTML()` sanitisation on frontend UI renders |
+## 📂 Repository Layout
 
-## 📁 Project Structure
+The workspace has been organized into modular peer directories to enforce clean Separation of Concerns:
 
 ```
 aura-saas/
-├── .github/workflows/      # Automated CI/CD (Testing, Deploy, Monitoring)
-├── docker/                 # Multi-stage Alpine Dockerfiles (Free-Tier optimized)
-├── helm/aura-saas/         # Kubernetes Helm charts (Deployments, HPA, Ingress)
-├── server/                 # Express.js secure backend API
-├── terraform/              # Infrastructure-as-Code (AWS EC2, RDS, Networking)
-├── scripts/                # Database initialization and setup utilities
-├── index.html              # Glassmorphism frontend UI
-├── Jenkinsfile             # Jenkins CI/CD pipeline migration proof-of-concept
-├── DR_AND_MIGRATION.md     # Multi-Cloud, Disaster Recovery, and Chaos Engineering plan
-└── README.md
+├── backend/                # Express.js backend API server & Dockerfile
+│   ├── index.js            # Express routes and logic
+│   └── Dockerfile          # Production runner
+│
+├── frontend/               # Client-side SPA, Nginx configuration & Dockerfile
+│   ├── css/style.css       # Layout stylesheets
+│   ├── js/app.js           # Client-side scripting
+│   └── Dockerfile          # Multi-stage container builder using Vite
+│
+├── helm/
+│   └── aura-saas/          # Helm chart files for Kubernetes deployment
+│       ├── values.yaml     # Global value specifications
+│       └── templates/      # Deployments, Services, Ingress, HPA, & RBAC
+│
+├── infra/
+│   └── terraform/          # IaC configurations (AWS VPC, EC2, RDS)
+│       └── scripts/
+│           └── ec2_bootstrap.sh  # EC2 bootstrap script (installs Docker, k3s, Helm)
+│
+├── tests/                  # Automation testing suite
+│   └── backend/
+│       └── helpers.test.js # Backend helper unit tests (Node.js test runner)
+│
+├── legacy/                 # Reference Blueprints for Capstone
+│   ├── assignment.py       # Legacy mock python-flask reference
+│   └── Jenkinsfile         # Jenkins multicloud pipeline blueprint
+│
+├── vite.config.js          # Root Vite bundler config
+└── package.json            # Main workspace package entry
 ```
 
-## 🎓 Academic Details
+---
 
-- **Project:** Multi-Tenant SaaS Platform with IaC, Autoscaling, and Kubernetes.
+## 🛡️ Key Architectural Principles
 
+1. **Kubernetes Orchestration**: Deployed to a lightweight `k3s` cluster running on a single AWS EC2 `t3.small` instance. Includes ingress-nginx for path-based prefix routing (`/dev/`, `/staging/`, `/`).
+2. **Schema-per-Tenant Isolation**: Implemented multi-tenancy at the database layer. JWT authentication extracts the tenant identifier (`tenant_a`, `tenant_b`) from the signed payload and dynamically modifies the database search path (`SET search_path TO tenant_x`) for isolation.
+3. **Horizontal Pod Autoscaling (HPA)**: Deployed pods auto-scale on CPU utilization thresholds exceeding 70%.
+4. **GitFlow CI/CD with Auto-Rollback**:
+   - Workflows validate and run Node unit tests in the PR stage.
+   - Merging changes triggers environment-specific deployments.
+   - Post-deployment checks run a one-time validation ping against the target environment. If it fails, `helm rollback` is triggered automatically to ensure high availability.
 
-## GitOps & Branching Strategy
+---
 
-To maintain high code quality and isolated testing environments, this project uses a GitFlow-inspired branching strategy mapped to GitHub Actions CI/CD pipelines:
+## 🛠️ Getting Started
 
-1. **Development (`dev` branch)**
-   - All ephemeral branches (`feature/*`, `bugfix/*`) are merged here.
-   - Deploys automatically to the **Dev Environment** (using `dev.tfvars` and `values.dev.yaml`).
-2. **Staging (`staging` branch)**
-   - Used for pre-production testing and QA.
-   - Deploys automatically to the **Staging Environment** (using `staging.tfvars` and `values.staging.yaml`).
-3. **Production (`main` branch)**
-   - The highly stable production release.
-   - Deploys automatically to the **Production Environment** (using `prod.tfvars` and `values.prod.yaml`).
+### 1. Local Development
+Vite handles local development and acts as a proxy for backend requests.
 
-Each environment has isolated Terraform state files, separate Kubernetes namespaces (`crm-dev`, `crm-staging`, `crm-prod`), and environment-specific Horizontal Pod Autoscaler (HPA) configurations to balance performance with AWS Free Tier constraints.
+```bash
+# Install backend dependencies
+cd backend && npm install
+
+# Install root developer dependencies
+cd .. && npm install
+
+# Run backend API server (port 3001)
+npm start --prefix backend
+
+# Run Vite dev server (port 3000)
+npm run dev
+```
+
+### 2. Running Automated Tests
+We use Node's native lightweight test runner for fast, dependency-free execution:
+
+```bash
+# Run backend test suite
+npm test
+```
+
+### 3. Deploying Infrastructure (IaC)
+Infrastructure is managed separately from application deployment. Set your AWS credentials in GitHub Secrets (`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`), then run the Terraform manual workflow or provision locally:
+
+```bash
+cd infra/terraform
+terraform init
+terraform apply -auto-approve
+```
+
+---
+
+## 👥 Educational Blueprints (`legacy/`)
+
+- **`Jenkinsfile`**: Contains a declarative pipeline showcasing how the CI/CD workflow can be migrated to Jenkins or multi-cloud environments.
+- **`assignment.py`**: A Python Flask implementation of multi-tenant API routing, kept as a mock baseline/reference for Python-based capstone requirements.

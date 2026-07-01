@@ -499,50 +499,59 @@ User Login
 
 ## 5. Docker Image Specification
 
-### Backend Image (`docker/Dockerfile.backend`)
+### Backend Image (`backend/Dockerfile`)
 
 ```dockerfile
-FROM node:20-alpine
-# Alpine = minimal attack surface, small image size
+FROM node:20-alpine AS builder
+WORKDIR /usr/src/app
 
-WORKDIR /app
-
-# Copy package files first (Docker layer caching)
-COPY server/package*.json ./
+COPY backend/package*.json ./
 RUN npm ci --only=production
-# npm ci = clean install, reproducible builds
-# --only=production = no devDependencies in image
 
-COPY server/ .
+COPY backend/index.js ./
 
-# Run as non-root user (security best practice)
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-USER appuser
+FROM node:20-alpine
+ENV NODE_ENV=production
+RUN addgroup -S aura && adduser -S aura -G aura
+WORKDIR /home/aura/app
 
+COPY --from=builder --chown=aura:aura /usr/src/app ./
+USER aura
 EXPOSE 3001
 CMD ["node", "index.js"]
 ```
 
-### Frontend Image (`docker/Dockerfile.frontend`)
+### Frontend Image (`frontend/Dockerfile`)
 
 ```dockerfile
-# Stage 1: Build
+# Stage 1: Build static frontend assets
 FROM node:20-alpine AS builder
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-# Output: /app/dist/
 
-# Stage 2: Serve (multi-stage = smaller final image)
+COPY package*.json vite.config.js ./
+RUN npm ci
+
+COPY frontend/ ./frontend/
+RUN npm run build
+
+# Stage 2: Serve with Nginx
 FROM nginx:alpine
-# Remove default nginx config
-RUN rm /etc/nginx/conf.d/default.conf
-# Copy custom config with security headers
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
-# Copy built static files
+RUN rm -rf /usr/share/nginx/html/*
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+RUN echo "server { \
+    listen 80; \
+    server_name localhost; \
+    root /usr/share/nginx/html; \
+    index index.html; \
+    location / { \
+        try_files \$uri \$uri/ /index.html; \
+    } \
+    add_header X-Frame-Options 'SAMEORIGIN'; \
+    add_header X-XSS-Protection '1; mode=block'; \
+    add_header X-Content-Type-Options 'nosniff'; \
+}" > /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
 ```
@@ -1065,65 +1074,63 @@ aura-saas/ (Project Root)
 │
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml          # CI: lint, test, security checks
-│       ├── deploy.yml      # CD: Docker build → GHCR → SSH → Helm
-│       └── monitor.yml     # Monitoring: health checks every 30 min
+│       └── pipeline.yml    # CI/CD: Linters, tests, builds, K8s deploys & rollback checks
 │
-├── docker/
-│   ├── Dockerfile.backend  # Node.js Express image
-│   ├── Dockerfile.frontend # Multi-stage Nginx image
-│   └── nginx.conf          # Custom Nginx config with security headers
-│
-├── helm/
-│   └── aura-saas/           # Helm chart for the entire application
-│       ├── Chart.yaml
-│       ├── values.yaml
-│       ├── values.prod.yaml
-│       └── templates/
-│           ├── namespace.yaml
-│           ├── secret.yaml
-│           ├── configmap.yaml
-│           ├── backend-deployment.yaml
-│           ├── backend-service.yaml
-│           ├── backend-hpa.yaml
-│           ├── frontend-deployment.yaml
-│           ├── frontend-service.yaml
-│           ├── frontend-hpa.yaml
-│           ├── ingress.yaml
-│           └── rbac.yaml
-│
-├── k8s/                    # Raw K8s manifests (for reference / manual apply)
-│   ├── namespaces.yaml
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   ├── hpa.yaml
-│   └── rbac.yaml
-│
-├── terraform/              # Infrastructure as Code
-│   ├── main.tf             # EC2, RDS, Security Groups
-│   └── variables.tf        # Input variables
-│
-├── scripts/
-│   ├── push_to_github.sh   # Helper: commit and push
-│   ├── simulate_load.sh    # Load testing script for HPA demo
-│   └── run_demo.sh         # Local demo runner
-│
-├── server/                 # Node.js Express backend
-│   ├── index.js            # Main application file
+├── backend/                # Express backend service
+│   ├── index.js            # Node Express server
+│   ├── Dockerfile          # Node production runner
 │   ├── package.json
 │   └── package-lock.json
 │
-├── templates/              # Flask template (academic demo)
-│   └── index.html
+├── frontend/               # Single Page Application
+│   ├── css/
+│   │   └── style.css       # Extracted layout style sheet
+│   ├── js/
+│   │   └── app.js          # Extracted client-side JS app
+│   ├── index.html          # Clean HTML referencing assets
+│   └── Dockerfile          # Multi-stage container builder using Vite
 │
-├── assignment.py           # Flask demo backend (Python)
-├── requirements.txt        # Python dependencies
-├── index.html              # Frontend SaaS console
-├── package.json            # Frontend build config
-├── vite.config.js          # Vite bundler config
-├── .dockerignore           # Exclude from Docker context
-├── .gitignore              # Exclude from Git
-└── README.md               # Project documentation
+├── helm/
+│   └── aura-saas/           # Helm chart for Kubernetes deployment
+│       ├── Chart.yaml
+│       ├── values.yaml
+│       ├── values.dev.yaml
+│       ├── values.staging.yaml
+│       ├── values.prod.yaml
+│       └── templates/
+│           ├── backend-deployment.yaml
+│           ├── frontend-deployment.yaml
+│           ├── hpa.yaml
+│           ├── ingress.yaml
+│           ├── postgres-deployment.yaml
+│           ├── rbac.yaml
+│           └── service.yaml
+│
+├── infra/
+│   └── terraform/           # Infrastructure as Code (AWS VPC, EC2, RDS)
+│       ├── environments/
+│       │   ├── dev.tfvars
+│       │   ├── prod.tfvars
+│       │   └── staging.tfvars
+│       ├── scripts/
+│       │   └── ec2_bootstrap.sh
+│       ├── main.tf
+│       ├── outputs.tf
+│       └── variables.tf
+│
+├── tests/                  # Automation testing suites
+│   └── backend/
+│       └── helpers.test.js # Node.js backend helper unit tests
+│
+├── legacy/                 # Reference Blueprints for Capstone
+│   ├── assignment.py       # Legacy mock python-flask reference
+│   └── Jenkinsfile         # Jenkins multicloud pipeline reference
+│
+├── vite.config.js          # Root Vite builder configuration
+├── package.json            # Main workspace entry points
+├── .gitignore
+├── .dockerignore
+└── README.md               # Main repository documentation
 ```
 
 ---

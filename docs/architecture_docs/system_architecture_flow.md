@@ -225,8 +225,8 @@ flowchart TD
 
     subgraph BUILD_BLOCK ["🐳 Stage 2 — Build & Push (build-push)"]
         direction LR
-        B1["docker build crm-backend\nDockerfile.backend"]
-        B2["docker build crm-frontend\nDockerfile.frontend multi-stage"]
+        B1["docker build crm-backend\nbackend/Dockerfile"]
+        B2["docker build crm-frontend\nfrontend/Dockerfile multi-stage"]
         B3["docker push to GHCR\nboth tagged git SHA + latest"]
         B1 & B2 --> B3
     end
