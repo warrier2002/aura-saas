@@ -1,11 +1,11 @@
 FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
 
-COPY server/package*.json ./
+COPY backend/package*.json ./
 
 RUN npm ci --only=production
 
-COPY server/index.js ./
+COPY backend/index.js ./
 
 FROM node:20-alpine
 

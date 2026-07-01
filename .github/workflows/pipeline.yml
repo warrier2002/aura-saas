@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - working-directory: server
+      - working-directory: backend
         run: |
           npm ci
           npm audit --audit-level=high || true
@@ -45,8 +45,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          if ! grep -q 'login-view' index.html; then echo "Missing login view"; exit 1; fi
-          if ! grep -q 'Authorization' index.html; then echo "Missing Authorization header"; exit 1; fi
+          if ! grep -q 'login-view' frontend/index.html; then echo "Missing login view"; exit 1; fi
+          if ! grep -q 'Authorization' frontend/index.html; then echo "Missing Authorization header"; exit 1; fi
 
   terraform-ci:
     name: "Terraform CI"
@@ -89,7 +89,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile.backend
+          file: backend/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/crm-backend:${{ steps.tag.outputs.tag }}
@@ -98,7 +98,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile.frontend
+          file: frontend/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}/crm-frontend:${{ steps.tag.outputs.tag }}

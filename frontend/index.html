@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura SaaS Platform</title>
+    <meta name="description" content="Aura SaaS — Secure Multi-Tenant Cloud CRM Platform">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- Environment Badge -->
+    <div class="env-badge" id="env-badge"></div>
+
+    <div class="container">
+
+        <!-- LOGIN VIEW -->
+        <div id="login-view" class="card">
+            <center>
+                <h1>Aura SaaS</h1>
+                <p class="subtitle">Secure Multi-Tenant Cloud Platform</p>
+            </center>
+
+            <div id="login-alert" class="alert"></div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label>Tenant Workspace</label>
+                    <select id="tenant" required>
+                        <option value="tenant_a">Tenant A (Enterprise)</option>
+                        <option value="tenant_b">Tenant B (Startup)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="admin@tenant-a.com" required
+                           minlength="5"
+                           maxlength="100"
+                           pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                           title="Enter a valid email address (e.g. user@example.com)">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" placeholder="••••••••" required
+                           minlength="8"
+                           maxlength="64"
+                           pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}"
+                           title="Password must be at least 8 characters and include 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character (!@#$%^&*)">
+                    <span class="password-policy">Min 8 chars: 1 uppercase, 1 lowercase, 1 number, 1 special (!@#$%^&*)</span>
+                </div>
+                <button type="submit">Authenticate</button>
+            </form>
+            <center class="test-hint">
+                Test accounts: admin@tenant-a.com / admin@tenant-b.com | Password: Admin@123
+            </center>
+        </div>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="dashboard" class="card">
+            <div class="dashboard-header">
+                <div>
+                    <h2>Customer CRM</h2>
+                    <span class="user-badge" id="user-info">Logged in as ...</span>
+                </div>
+                <button class="btn-small" onclick="logout()">Sign Out</button>
+            </div>
+
+            <div id="dash-alert" class="alert"></div>
+
+            <div class="dashboard-layout">
+                <!-- Sidebar -->
+                <div class="sidebar">
+                    <button class="sidebar-tab active" id="tab-btn-customers" onclick="switchTab('customers')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Customers
+                    </button>
+                    <button class="sidebar-tab" id="tab-btn-contacts" onclick="switchTab('contacts')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        Contacts
+                    </button>
+                    <button class="sidebar-tab" id="tab-btn-autoscaling" onclick="switchTab('autoscaling')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px;"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                        Autoscaling Status
+                    </button>
+                </div>
+
+                <!-- Content Area -->
+                <div class="content-area">
+                    <!-- CUSTOMERS PANEL -->
+                    <div id="panel-customers" class="tab-panel active">
+                        <div class="two-col">
+                            <!-- Add Customer Form -->
+                            <div>
+                                <h3 style="margin-bottom:1rem;">Add Customer</h3>
+                                <form id="customer-form">
+                                    <div class="form-group">
+                                        <input type="text" id="cust-name" placeholder="Full Name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="email" id="cust-email" placeholder="Email Address">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="cust-company" placeholder="Company Name">
+                                    </div>
+                                    <button type="submit">Add to CRM</button>
+                                </form>
+                            </div>
+
+                            <!-- Customer List -->
+                            <div>
+                                <h3 style="margin-bottom:1rem;">Tenant Directory</h3>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Company</th>
+                                                <th style="width:70px; text-align:center;">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="customer-list">
+                                            <!-- Populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTACTS PANEL -->
+                    <div id="panel-contacts" class="tab-panel">
+                        <div class="two-col">
+                            <!-- Add Contact Form -->
+                            <div>
+                                <h3 style="margin-bottom:1rem;">Add Contact</h3>
+                                <form id="contact-form">
+                                    <div class="form-group">
+                                        <label>Associate Customer</label>
+                                        <select id="contact-customer-id" required>
+                                            <option value="">Select a Customer...</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="contact-name" placeholder="Full Name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="email" id="contact-email" placeholder="Email Address">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="contact-phone" placeholder="Phone Number">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="text" id="contact-role" placeholder="Role (e.g. Manager, CTO)">
+                                    </div>
+                                    <button type="submit">Add Contact</button>
+                                </form>
+                            </div>
+
+                            <!-- Contacts List -->
+                            <div>
+                                <h3 style="margin-bottom:1rem;">Contacts Directory</h3>
+                                <div class="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Contact</th>
+                                                <th>Customer Assoc.</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="contacts-list">
+                                            <!-- Populated by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AUTOSCALING PANEL -->
+                    <div id="panel-autoscaling" class="tab-panel">
+                        <h3 style="margin-bottom:1.5rem;">Live HPA Replica Status</h3>
+                        
+                        <div class="hpa-card">
+                            <div class="hpa-info-grid">
+                                <div class="hpa-metric-card">
+                                    <div class="label">Ready / Total Replicas</div>
+                                    <div class="value" id="hpa-replica-count">1 / 1</div>
+                                </div>
+                                <div class="hpa-metric-card">
+                                    <div class="label">Autoscaler Mode</div>
+                                    <div class="value" id="hpa-mode">Local (Mock)</div>
+                                </div>
+                                <div class="hpa-metric-card">
+                                    <div class="label">Target Threshold</div>
+                                    <div class="value">CPU > 70%</div>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top:2rem;">
+                                <h4 style="font-size:0.9rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:1rem; font-weight:600; letter-spacing:0.05em;">Active Pod Visualizer</h4>
+                                <div class="pods-container" id="pods-container">
+                                    <!-- Rendered dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top:2.5rem; padding:1.5rem; background:#FAF8F5; border:1px dashed var(--border); border-radius:10px;">
+                                <h4 style="font-size:0.9rem; color:var(--primary); margin-bottom:0.5rem;">Demonstrate HPA Scaling</h4>
+                                <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.5;">To trigger autoscaling, you can run the load simulator script on the server, which sends continuous concurrent requests to generate CPU stress. The Horizontal Pod Autoscaler (HPA) will automatically spin up new replicas (up to 10) once the load exceeds 70% CPU.</p>
+                                <code style="display:block; margin-top:1rem; padding:0.6rem; background:#FFFFFF; border:1px solid var(--border); border-radius:6px; font-size:0.75rem; font-family:monospace; color:var(--text-main); overflow-x:auto;">./scripts/simulate_load.sh -u http://aurasaas.duckdns.org/api/customers -c 15 -d 60</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>&copy; 2026 Aura SaaS Platform &mdash; Secured with JWT &amp; Multi-Tenant Isolation</footer>
+
+    <script type="module" src="/js/app.js"></script>
+</html>

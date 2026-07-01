@@ -201,7 +201,13 @@ jobs:
             REPLICAS=1
             AUTOSCALING="false"
           fi
-          
+
+          if [ "${{ inputs.environment }}" = "prod" ]; then
+            CHECK_PATH="/"
+          else
+            CHECK_PATH="/${{ inputs.environment }}/"
+          fi
+
           cat << EOF > deploy.sh
           set -e
           export KUBECONFIG=/home/ec2-user/.kube/config
@@ -223,36 +229,30 @@ jobs:
             --set frontend.replicas="${REPLICAS}" \\
             --set autoscaling.enabled="${AUTOSCALING}" \\
             --wait --timeout 8m
-          kubectl get pods -n crm-${{ inputs.environment }}
-          EOF
           
-          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.sh ec2-user@"$EC2_IP":~/deploy.sh
-          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ec2-user@"$EC2_IP" "bash ~/deploy.sh"
+          echo "==== PODS STATUS ===="
+          kubectl get pods -n crm-${{ inputs.environment }}
 
-  # ===========================================================================
-  # STAGE 4: MONITOR
-  # ===========================================================================
-  monitor:
-    needs: [helm-deploy, provision]
-    name: "🔍 Monitor Health (${{ inputs.environment }})"
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          EC2_IP="${{ needs.provision.outputs.ec2_public_ip }}"
-          HOST_URL="aurasaas.duckdns.org"
-          if [ "${{ inputs.environment }}" = "prod" ]; then
-            CHECK_PATH="/"
-          else
-            CHECK_PATH="/${{ inputs.environment }}/"
-          fi
-          echo ">>> Pinging http://${HOST_URL}${CHECK_PATH}"
-          for i in $(seq 1 12); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://${HOST_URL}${CHECK_PATH}" || true)
-            if [ "$STATUS" = "200" ]; then
+          # Health check validation
+          echo "==== RUNNING POST-DEPLOYMENT HEALTH CHECK ===="
+          HEALTHY=false
+          for i in \$(seq 1 12); do
+            STATUS=\$(curl -s -o /dev/null -w "%{http_code}" -H "Host: aurasaas.duckdns.org" "http://127.0.0.1\${CHECK_PATH}" || true)
+            if [ "\$STATUS" = "200" ]; then
               echo "✅ Success! Received HTTP 200 OK."
-              exit 0
+              HEALTHY=true
+              break
             fi
+            echo "Waiting for app to be ready... (status: \$STATUS)"
             sleep 15
           done
-          echo "❌ ERROR: Web App failed to return HTTP 200 OK within 3 minutes!"
-          exit 1
+
+          if [ "\$HEALTHY" = "false" ]; then
+            echo "❌ ERROR: Web App failed health check! Rolling back..."
+            helm rollback aura-saas -n crm-${{ inputs.environment }}
+            exit 1
+          fi
+          EOF
+
+          scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no deploy.sh ec2-user@"$EC2_IP":~/deploy.sh
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ServerAliveInterval=60 ec2-user@"$EC2_IP" "CHECK_PATH=\"$CHECK_PATH\" bash ~/deploy.sh"
