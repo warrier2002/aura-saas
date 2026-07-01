@@ -20,7 +20,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: |
-          pip install -r legacy/requirements.txt flake8 --break-system-packages
+          python -m pip install -r legacy/requirements.txt flake8
           flake8 legacy/assignment.py --count --select=E9,F63,F7,F82 --show-source --statistics
           python -c "import py_compile; py_compile.compile('legacy/assignment.py')"
 
